@@ -302,7 +302,7 @@ body.finder-open{overflow:hidden}
 
   <details class="credits">
     <summary>Credits and license</summary>
-    <p>Pocket Retro is an unofficial personal app (version 1.4.0). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
+    <p>Pocket Retro is an unofficial personal app (version 1.4.1). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
     <pre>Copyright © valadaptive
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -1600,6 +1600,7 @@ async function renderVideo(){
       let audioNote="";
       if(aud.buf){ $("progTxt").textContent="Adding the sound…"; await encodeAudioInto(muxer,aud,V.start,n/fps,fx); }
       else if(aud.why==="no-encoder"){ audioNote=" This browser can't encode sound, so the video is silent."; }
+      else if(aud.why==="no-audio"){ audioNote=" The clip has no sound, or its sound couldn't be read, so the video is silent."; }
       muxer.finalize();
       const blob=new Blob([muxer.target.buffer],{type:"video/mp4"});
       result={blob,url:URL.createObjectURL(blob),ext:"mp4"}; resultKey=keyNow();
@@ -1612,8 +1613,25 @@ async function renderVideo(){
 }
 function endRender(lock){ try{ lock&&lock.release(); }catch(e){} rendering=false; $("prog").hidden=true; $("vfdState").textContent="READY";
   setSaveLabel(); if(kind==="video") seek(video,+$("vPos").value).then(()=>{ prepDirty=true; schedule(); }); }
+/* AAC setup bytes (AudioSpecificConfig). Safari's AudioEncoder hands back broken ones (WebKit bug 302253), which makes the
+   sound track silent on iPhone, so we always write our own: AAC-LC, the real sample rate and channel count. */
+function aacConfig(sr,ch){
+  const FI=[96000,88200,64000,48000,44100,32000,24000,22050,16000,12000,11025,8000,7350].indexOf(sr), bits=[];
+  const put=(v,n)=>{ for(let i=n-1;i>=0;i--) bits.push((v>>>i)&1); };
+  put(2,5); if(FI>=0) put(FI,4); else { put(15,4); put(sr,24); } put(ch,4);
+  while(bits.length%8) bits.push(0);
+  const out=new Uint8Array(bits.length/8); bits.forEach((b,i)=>{ out[i>>3]|=b<<(7-(i&7)); }); return out;
+}
+function aacChunk(c){ /* drop an ADTS header if an encoder adds one; MP4 wants raw AAC frames */
+  const d=new Uint8Array(c.byteLength); c.copyTo(d);
+  if(d.length>7 && d[0]===0xFF && (d[1]&0xF6)===0xF0){ const h=(d[1]&1)?7:9;
+    return new EncodedAudioChunk({type:c.type,timestamp:c.timestamp,duration:c.duration??undefined,data:d.subarray(h)}); }
+  return c;
+}
 async function encodeAudioInto(muxer,aud,start,dur,fx){
-  let err=null; const aenc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m), error:e=>{err=e;}}); aenc.configure(aud.cfg);
+  const isAac=aud.mux==="aac", asc=isAac?aacConfig(aud.cfg.sampleRate,aud.cfg.numberOfChannels):null;
+  const out=(c,m)=>{ if(isAac){ c=aacChunk(c); if(m&&m.decoderConfig) m={...m,decoderConfig:{...m.decoderConfig,description:asc}}; } muxer.addAudioChunk(c,m); };
+  let err=null; const aenc=new AudioEncoder({output:out, error:e=>{err=e;}}); aenc.configure(isAac?{...aud.cfg,aac:{format:"aac"}}:aud.cfg);
   const sr=aud.buf.sampleRate, CH=aud.ch, chans=[];
   let s0=Math.floor(start*sr), s1=Math.min(aud.buf.length, s0+Math.round(dur*sr)), ab=aud.buf;
   if(fx && s1>s0){ $("progTxt").textContent="Processing the sound…"; ab=await processAudio(aud.buf,s0,s1,fx,CH); s0=0; s1=ab.length; }
