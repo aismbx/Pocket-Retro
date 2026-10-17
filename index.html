@@ -186,10 +186,20 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 .fbtn{border:0;background:var(--case-3);color:var(--silk);font:600 13px var(--f-silk);letter-spacing:.12em;text-transform:uppercase;border-radius:8px;padding:10px 14px;cursor:pointer}
 .fshut{width:76px;height:76px;border-radius:50%;border:5px solid #fff;background:var(--rec);cursor:pointer;box-shadow:0 0 0 3px #000 inset}
 .fshut:active{transform:scale(.94)}
-.fclip{background:transparent;text-decoration:underline}
+.fmodes{display:flex;gap:6px}
+.fmodes .fbtn[aria-pressed="true"]{background:var(--vfd);color:#04201b}
+.fbtn:disabled{opacity:.4}
+.fshut.vid{background:#fff}
+.fshut.vid::after{content:"";display:block;width:26px;height:26px;margin:auto;border-radius:50%;background:var(--rec)}
+.fshut.recording::after{border-radius:5px;width:24px;height:24px}
 body.finder-open{overflow:hidden}
 .ck{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--silk);padding:4px 0}
 .ck input{width:18px;height:18px;accent-color:var(--tape)}
+.lefthint{text-align:left!important;margin-top:8px}
+.hbtns{display:flex;gap:6px}
+.cmp:disabled{opacity:.35;cursor:default}
+#view,#origImg{-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
+.screen.cmp-on #view{pointer-events:none;-webkit-touch-callout:none}
 </style>
 
 </head>
@@ -213,7 +223,8 @@ body.finder-open{overflow:hidden}
       <span class="badge" id="badgeL" hidden>ORIGINAL</span>
       <span class="badge right" id="badgeR" hidden>SAMPLE</span>
     </div>
-    <div class="hintrow"><span class="hint" id="hintTxt"></span><button class="cmp" id="cmpBtn" aria-pressed="false">Compare</button></div>
+    <div class="hint lefthint" id="hintTxt"></div>
+    <div class="hintrow"><div class="hbtns"><button class="cmp" id="undoBtn" disabled aria-label="Undo">↶ Undo</button><button class="cmp" id="redoBtn" disabled aria-label="Redo">↷ Redo</button></div><button class="cmp" id="cmpBtn" aria-pressed="false">Compare</button></div>
   </div>
 
   <div class="transport">
@@ -234,7 +245,7 @@ body.finder-open{overflow:hidden}
       <button class="fshut" id="fShutter" aria-label="Take photo"></button>
       <button class="fbtn" id="fFlip">Flip</button>
     </div>
-    <button class="fbtn fclip" id="fClip">Record a clip instead</button>
+    <div class="fmodes" role="group" aria-label="Camera mode"><button class="fbtn" id="fPhoto" aria-pressed="true">Photo</button><button class="fbtn" id="fVideo" aria-pressed="false">Video</button></div>
   </div>
 
   <div class="panel vbox" id="vbox" hidden>
@@ -307,7 +318,7 @@ body.finder-open{overflow:hidden}
 
   <details class="credits">
     <summary>Credits and license</summary>
-    <p>Pocket Retro is an unofficial personal app (version 1.0.0). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
+    <p>Pocket Retro is an unofficial personal app (version 1.1.0). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
     <pre>Copyright © valadaptive
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -646,7 +657,7 @@ const CLOOKS=[
   {id:"mono", name:"Mono",      sub:"Black and white", gain:[1,1,1],   con:1.30, sat:0,    lift:6,  tint:[0,0,0],   clip:1.6},
 ];
 function cdefaults(){ return {type:"vga", look:"day", flash:false, noise:45, mic:true, scale:1, seed:0,
-  stamp:"orange", stampFmt:"yy", stampTime:false, stampPos:"br", frame:"none"}; }
+  stamp:"none", stampFmt:"yy", stampTime:false, stampPos:"br", stampSize:1, frame:"none", crop:"sensor"}; }
 let C=cdefaults();
 const camType=()=>CAMS.find(c=>c.id===C.type)||CAMS[0];
 function camParams(){ const T=camType(), L=CLOOKS.find(l=>l.id===C.look)||CLOOKS[0], tt=T.tint||[0,0,0];
@@ -819,6 +830,7 @@ const CONTROLS={
   {k:"rng",id:"theight",label:"Tracking noise height",min:2,max:120,step:1,fmt:v=>f0(v)+" ln",get:()=>S.tracking.height,set:v=>S.tracking.height=v},
  ],
  picture:[
+  {k:"seg",id:"ccrop",label:"Crop",show:()=>M==="camera",opts:[["sensor","Camera"],["orig","Original"],["4:3","4:3"],["16:9","16:9"],["1:1","1:1"]],get:()=>C.crop,set:v=>C.crop=v,pic:1,desc:"Camera uses the sensor’s own shape. Crops turn to match a portrait or landscape photo."},
   {k:"seg",show:()=>M==="tape",id:"aspect",label:"Crop",opts:[["orig","Original"],["4:3","4:3"],["16:9","16:9"],["1:1","1:1"],["3:4","3:4"]],get:()=>P.aspect,set:v=>P.aspect=v,pic:1},
   {k:"seg",id:"rot",label:"Rotate",opts:[["0","0°"],["90","90°"],["180","180°"],["270","270°"]],get:()=>String(P.rot),set:v=>P.rot=+v,pic:1},
   {k:"sw",id:"flip",label:"Mirror",get:()=>P.flip,set:v=>P.flip=v,pic:1},
@@ -873,6 +885,7 @@ const CONTROLS={
   {k:"seg",id:"sstyle",label:"Date stamp",opts:[["none","None"],["orange","Orange LED"],["yellow","Yellow LED"],["white","Digital white"],["red","Red dot matrix"]],get:()=>C.stamp,set:v=>{C.stamp=v; buildPanel();},pic:1},
   {k:"seg",id:"sfmt",label:"Date order",opts:[["yy","'26 10 17"],["dmy","17 10 '26"],["ymd","2026.10.17"],["mdy","10/17/2026"]],get:()=>C.stampFmt,set:v=>C.stampFmt=v,pic:1,show:()=>C.stamp!=="none"},
   {k:"sw",id:"stime",label:"Add the time",get:()=>C.stampTime,set:v=>C.stampTime=v,pic:1,show:()=>C.stamp!=="none"},
+  {k:"rng",id:"ssize",label:"Stamp size",min:0.5,max:2.5,step:0.05,fmt:v=>Math.round(v*100)+"%",get:()=>C.stampSize,set:v=>C.stampSize=v,pic:1,show:()=>C.stamp!=="none"},
   {k:"seg",id:"spos",label:"Position",opts:[["br","Bottom right"],["bl","Bottom left"],["tr","Top right"],["tl","Top left"]],get:()=>C.stampPos,set:v=>C.stampPos=v,pic:1,show:()=>C.stamp!=="none"},
   {k:"head",label:"Frame"},
   {k:"seg",id:"sframe",label:"Frame style",opts:[["none","None"],["view","Viewfinder"],["phone","Phone camera"],["info","Shot info"]],get:()=>C.frame,set:v=>C.frame=v,pic:1,desc:"Viewfinder adds an old camera screen's battery, frame counter and focus marks. Phone camera adds a 2000s phone's status and soft-key bars."},
@@ -900,7 +913,21 @@ const CONTROLS={
 
 
 /* ================= persisted state ================= */
-function remember(){ try{ localStorage.setItem("pretro",JSON.stringify({M,S,P,A,C,preset:presetId,tabT,tabC,lookId})); }catch(e){} }
+function remember(){ try{ localStorage.setItem("pretro",JSON.stringify({M,S,P,A,C,preset:presetId,tabT,tabC,lookId})); }catch(e){} histCommit(); }
+/* ================= undo / redo ================= */
+let hist=[], hIdx=-1, hTimer=null, hApplying=false;
+const snapNow=()=>JSON.stringify({M,S,P,A,C,presetId});
+function histCommit(now){ if(hApplying) return; clearTimeout(hTimer); const go=()=>{ const s=snapNow(); if(hist[hIdx]===s) return;
+  hist=hist.slice(0,hIdx+1); hist.push(s); if(hist.length>100) hist.shift(); hIdx=hist.length-1; syncHist(); };
+  if(now) go(); else hTimer=setTimeout(go,450); }
+function syncHist(){ const u=document.getElementById("undoBtn"), r=document.getElementById("redoBtn"); if(!u) return; u.disabled=hIdx<=0; r.disabled=hIdx>=hist.length-1; }
+function histApply(i){
+  if(i<0||i>=hist.length||rendering) return; histCommit(true); if(i>=hist.length) i=hist.length-1;
+  hIdx=i; const d=JSON.parse(hist[i]); hApplying=true;
+  S=merge(defaults(),d.S); P=Object.assign(clone(PDEF),d.P); P.crt=Object.assign(clone(PDEF.crt),d.P.crt||{}); A=Object.assign(adefaults(),d.A); C=Object.assign(cdefaults(),d.C); presetId=d.presetId;
+  if(d.M!==M) setMode(d.M,true); else { buildShelves(); buildPanel(); syncVfd(); setSaveLabel(); prepDirty=true; schedule(); }
+  hApplying=false; try{ localStorage.setItem("pretro",JSON.stringify({M,S,P,A,C,preset:presetId,tabT,tabC,lookId})); }catch(e){} syncHist();
+}
 try{ const sv=JSON.parse(localStorage.getItem("pretro")||"null");
   if(sv){ if(sv.S) S=merge(defaults(),sv.S); if(sv.P){ P=Object.assign(clone(PDEF),sv.P); P.crt=Object.assign(clone(PDEF.crt),sv.P.crt||{}); }
     if(sv.A) A=Object.assign(adefaults(),sv.A); if(sv.C) C=Object.assign(cdefaults(),sv.C);
@@ -1075,7 +1102,10 @@ function drawOsd(x,W,H,offsetMs){
 /* camera-mode geometry: the camera's own sensor size, turned to match the photo */
 function camGeom(source){
   const [sw0,sh0]=dims(source), rotated=P.rot===90||P.rot===270, sw=rotated?sh0:sw0, sh=rotated?sw0:sh0, T=camType();
-  let [W,H]=(kind==="video"?T.vres:T.res); if(sh>sw) [W,H]=[H,W];
+  let [W,H]=(kind==="video"?T.vres:T.res);
+  const long=Math.max(W,H), pick={"4:3":4/3,"16:9":16/9,"1:1":1,"orig":Math.max(sw,sh)/Math.min(sw,sh)}[C.crop];
+  if(pick){ W=long; H=Math.max(2,Math.round(long/pick/2)*2); }
+  if(sh>sw) [W,H]=[H,W];
   const Ar=W/H; let cw=sw, ch=sh; if(sw/sh>Ar) cw=sh*Ar; else ch=sw/Ar;
   return {sw0,sh0,sw,sh,cw,ch,W,H};
 }
@@ -1157,7 +1187,7 @@ function drawCamOverlays(x,W,H,tMs,frame){
     x.textAlign="right"; x.fillText(`100-${String(counterNum()).padStart(4,"0")}`,W-bh*0.35,H-bh/2); x.restore();
   }
   if(C.stamp!=="none"){
-    const txt=stampText(t), h=Math.round(H*0.065), mx=Math.round(W*0.05), my=Math.round(H*(C.frame==="phone"?0.13:C.frame==="info"&&C.stampPos[0]==="b"?0.13:0.055));
+    const txt=stampText(t), h=Math.round(H*0.065*(C.stampSize||1)), mx=Math.round(W*0.05), my=Math.round(H*(C.frame==="phone"?0.13:C.frame==="info"&&C.stampPos[0]==="b"?0.13:0.055));
     const left=C.stampPos[1]==="l", top=C.stampPos[0]==="t", px=left?mx:W-mx, by=top?my+h:H-my;
     if(C.stamp==="orange") seg7(x,txt,px,by,h,"#ffb060","rgba(255,110,20,.95)",left);
     else if(C.stamp==="yellow") seg7(x,txt,px,by,h,"#ffe27a","rgba(255,190,30,.9)",left);
@@ -1274,20 +1304,25 @@ function changed(pic){ syncVfd(); remember(); if(pic) prepDirty=true; schedule()
 
 /* ================= compare: hold, or a draggable before/after slider ================= */
 const screen=$("screen"), origImg=$("origImg"); let holding=false, cmpOn=false, cmpX=50, origUrl=null;
+let origGen=0;
+function clearOrig(){ origGen++; origImg.style.visibility="hidden"; origImg.removeAttribute("src"); if(origUrl){ URL.revokeObjectURL(origUrl); origUrl=null; } }
 async function updateOrig(){
-  if(!last) return; const c=last.canvas, o=document.createElement("canvas"); o.width=c.width; o.height=c.height; const x=o.getContext("2d");
+  if(!last) return; const gen=++origGen; origImg.style.visibility="hidden"; const c=last.canvas, o=document.createElement("canvas"); o.width=c.width; o.height=c.height; const x=o.getContext("2d");
   x.fillStyle=M==="tape"&&P.crt.on?"#000":(P.borderColor||"#000"); x.fillRect(0,0,o.width,o.height); x.imageSmoothingEnabled=M!=="camera"||C.scale===1;
   x.drawImage(last.orig,last.rect.x,last.rect.y,last.rect.w,last.rect.h);
-  const b=await toBlob(o,"image/jpeg",0.9); if(!b) return; const u=URL.createObjectURL(b); if(origUrl) URL.revokeObjectURL(origUrl); origUrl=u; origImg.src=u;
+  const b=await toBlob(o,"image/jpeg",0.9); if(!b||gen!==origGen) return; const u=URL.createObjectURL(b); if(origUrl) URL.revokeObjectURL(origUrl); origUrl=u;
+  origImg.onload=()=>{ if(gen===origGen) origImg.style.visibility="visible"; }; origImg.src=u;
 }
 function applyCmp(){ origImg.hidden=!(cmpOn||holding); $("divider").hidden=!cmpOn; $("badgeL").hidden=!(cmpOn||holding);
   origImg.style.clipPath = cmpOn ? `inset(0 ${100-cmpX}% 0 0)` : "none"; $("divider").style.left=cmpX+"%"; $("cmpBtn").setAttribute("aria-pressed",String(cmpOn)); screen.classList.toggle("cmp-on",cmpOn); }
 $("cmpBtn").onclick=()=>{ cmpOn=!cmpOn; if(cmpOn) updateOrig(); applyCmp(); };
 let holdT=null, dragging=false;
 function setX(e){ const r=screen.getBoundingClientRect(); cmpX=Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100)); applyCmp(); }
-screen.addEventListener("pointerdown",e=>{ if(rendering) return; if(cmpOn){ dragging=true; try{ screen.setPointerCapture(e.pointerId); }catch(_){} setX(e); return; }
+for(const im of [view,origImg]){ im.draggable=false; im.addEventListener("dragstart",e=>e.preventDefault()); }
+screen.addEventListener("pointerdown",e=>{ if(rendering) return; if(cmpOn){ e.preventDefault(); dragging=true; try{ screen.setPointerCapture(e.pointerId); }catch(_){} setX(e); return; }
   holdT=setTimeout(async()=>{ holding=true; await updateOrig(); applyCmp(); },140); });
 screen.addEventListener("pointermove",e=>{ if(dragging) setX(e); });
+screen.addEventListener("touchmove",e=>{ if(cmpOn) e.preventDefault(); },{passive:false});
 ["pointerup","pointercancel","pointerleave"].forEach(ev=>screen.addEventListener(ev,()=>{ dragging=false; clearTimeout(holdT); if(holding){ holding=false; applyCmp(); } }));
 screen.addEventListener("contextmenu",e=>{ if(holding||cmpOn) e.preventDefault(); });
 
@@ -1733,7 +1768,7 @@ function setMode(m,quiet){
   $("mTape").setAttribute("aria-pressed",String(M==="tape")); $("mCamera").setAttribute("aria-pressed",String(M==="camera"));
   $("tl1").textContent=M==="tape"?"Eject":"Library"; $("tl2").textContent=M==="tape"?"Rec":"Snap"; $("tl3").textContent=M==="tape"?"Tracking":"Shuffle";
   $("inLib").accept=M==="tape"?"image/*,video/*,audio/*":"image/*,video/*";
-  $("hintTxt").textContent=M==="tape"?"Eject opens photos, videos or sound files. Rec uses the camera.":"Snap opens a live low-res viewfinder. Library opens a photo or clip you already have.";
+  $("hintTxt").textContent=M==="tape"?"Eject opens photos, videos or sound files. Rec opens a live camera with a VHS preview.":"Snap opens a live viewfinder for photos and clips. Library opens one you already have.";
   if(kind==="audio" && M==="camera"){ $("note").textContent="Sound-only files work in Tape mode, so Camera mode is showing a sample."; useSample(); }
   else if(isSample) useSample();
   if(kind==="video" && M==="camera") V.fps=camType().vfps;
@@ -1746,56 +1781,81 @@ $("mCamera").onclick=()=>{ if(!rendering && M!=="camera"){ lookId=""; setMode("c
 
 /* ================= inputs ================= */
 $("bEject").onclick=()=>{ if(rendering) return; $("inLib").value=""; $("inLib").click(); };
-$("bRec").onclick=()=>{ if(rendering) return; if(M==="camera" && navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.isSecureContext){ openFinder(); return; } $("inCam").value=""; $("inCam").click(); };
-/* live viewfinder: the camera feed, developed through the current camera type in real time */
-let fStream=null, fFacing="environment", fRun=false;
+$("bRec").onclick=()=>{ if(rendering) return; if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.isSecureContext){ openFinder(); return; } $("inCam").value=""; $("inCam").click(); };
+/* live viewfinder: the camera feed, developed through the current mode in real time. Photo or video. */
+let fStream=null, fFacing="environment", fRun=false, fMode="photo", fRec=null, fChunks=[], fT0=0, fTick=null;
 const fVid=document.createElement("video"); fVid.muted=true; fVid.playsInline=true; fVid.setAttribute("playsinline","");
 async function startStream(){
   if(fStream) fStream.getTracks().forEach(t=>t.stop());
-  fStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:fFacing,width:{ideal:1920},height:{ideal:1440}},audio:false});
+  fStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:fFacing,width:{ideal:1920},height:{ideal:1440}},audio:fMode==="video"});
   fVid.srcObject=fStream; await fVid.play().catch(()=>{});
   await new Promise(r=>{ if(fVid.videoWidth) r(); else fVid.onloadedmetadata=()=>r(); setTimeout(r,3000); });
 }
+function syncFinderUi(){ $("fPhoto").setAttribute("aria-pressed",String(fMode==="photo")); $("fVideo").setAttribute("aria-pressed",String(fMode==="video"));
+  $("fShutter").classList.toggle("vid",fMode==="video"); $("fShutter").classList.toggle("recording",!!fRec); $("fShutter").setAttribute("aria-label",fMode==="photo"?"Take photo":fRec?"Stop recording":"Start recording");
+  $("fFlip").disabled=!!fRec; $("fPhoto").disabled=!!fRec; $("fVideo").disabled=!!fRec; }
 async function openFinder(){
-  $("finder").hidden=false; document.body.classList.add("finder-open"); $("fMsg").textContent="Starting the camera…";
-  try{ await startStream(); }catch(e){ $("fMsg").textContent="The camera couldn't start. Allow camera access for this site in Settings › Safari › Camera, or use Library."; return; }
-  $("fMsg").textContent=""; fRun=true; finderLoop();
+  $("finder").hidden=false; document.body.classList.add("finder-open"); $("fMsg").textContent="Starting the camera…"; syncFinderUi();
+  try{ await startStream(); }catch(e){ $("fMsg").textContent="The camera couldn't start. Allow camera access for this site in Settings › Safari › Camera, or use "+(M==="tape"?"Eject":"Library")+"."; return; }
+  $("fMsg").textContent = M==="tape" ? "Live Tape preview (lighter than the final render)." : ""; fRun=true; finderLoop();
 }
-function closeFinder(){ fRun=false; if(fStream){ fStream.getTracks().forEach(t=>t.stop()); fStream=null; } $("finder").hidden=true; document.body.classList.remove("finder-open"); }
+function closeFinder(){ if(fRec){ try{ fRec.onstop=null; fRec.stop(); }catch(e){} fRec=null; clearInterval(fTick); }
+  fRun=false; if(fStream){ fStream.getTracks().forEach(t=>t.stop()); fStream=null; } $("finder").hidden=true; document.body.classList.remove("finder-open"); }
 async function finderLoop(){
   const cv=$("fCanvas"), x=cv.getContext("2d"), work=document.createElement("canvas"), wx=work.getContext("2d",{willReadFrequently:true});
   let frame=0;
   while(fRun){
     const vw=fVid.videoWidth, vh=fVid.videoHeight; if(!vw){ await sleep(50); continue; }
-    const T=camType(); let [W,H]=T.vres; if(vh>vw) [W,H]=[H,W];
+    let W,H;
+    if(M==="camera"){ const T=camType(); [W,H]=T.vres; if(vh>vw) [W,H]=[H,W]; }
+    else { H=240; W=Math.round(H*(vw/vh)/2)*2; }
     const Ar=W/H; let cw=vw, ch=vh; if(vw/vh>Ar) cw=vh*Ar; else ch=vw/Ar;
     if(work.width!==W||work.height!==H){ work.width=W; work.height=H; }
     wx.save(); if(fFacing==="user"){ wx.translate(W,0); wx.scale(-1,1); } wx.drawImage(fVid,(vw-cw)/2,(vh-ch)/2,cw,ch,0,0,W,H); wx.restore();
-    const out=await engine("cam",wx.getImageData(0,0,W,H).data,W,H,camParams(),frame++);
+    const data=wx.getImageData(0,0,W,H).data;
+    const out = M==="camera" ? await engine("cam",data,W,H,camParams(),frame++) : await engine("ntsc",data,W,H,clone(S),frame++);
     if(!fRun) break;
     if(cv.width!==W||cv.height!==H){ cv.width=W; cv.height=H; }
     x.putImageData(new ImageData(new Uint8ClampedArray(out.buf),W,H),0,0);
-    drawCamOverlays(x,W,H,0,frame);
+    if(M==="camera") drawCamOverlays(x,W,H,0,frame);
+    if(fRec){ x.fillStyle="#ff3b30"; x.beginPath(); x.arc(W*0.06,H*0.08,Math.max(3,H*0.025),0,Math.PI*2); x.fill(); }
     await new Promise(r=>requestAnimationFrame(r));
   }
 }
+function pickRecType(){ if(!window.MediaRecorder) return null; for(const t of ["video/mp4;codecs=avc1","video/mp4","video/webm;codecs=vp9,opus","video/webm"]) { try{ if(MediaRecorder.isTypeSupported(t)) return t; }catch(e){} } return ""; }
 $("fShutter").onclick=async()=>{
   const vw=fVid.videoWidth, vh=fVid.videoHeight; if(!vw) return;
-  const c=document.createElement("canvas"); c.width=vw; c.height=vh; const x=c.getContext("2d");
-  if(fFacing==="user"){ x.translate(vw,0); x.scale(-1,1); } x.drawImage(fVid,0,0);
-  $("finder").classList.add("flash"); setTimeout(()=>$("finder").classList.remove("flash"),180);
-  const b=await toBlob(c,"image/jpeg",0.95); closeFinder();
-  if(b) takeFile(new File([b],`snap_${Date.now()}.jpg`,{type:"image/jpeg",lastModified:Date.now()}));
+  if(fMode==="photo"){
+    const c=document.createElement("canvas"); c.width=vw; c.height=vh; const x=c.getContext("2d");
+    if(fFacing==="user"){ x.translate(vw,0); x.scale(-1,1); } x.drawImage(fVid,0,0);
+    $("finder").classList.add("flash"); setTimeout(()=>$("finder").classList.remove("flash"),180);
+    const b=await toBlob(c,"image/jpeg",0.95); closeFinder();
+    if(b) takeFile(new File([b],`snap_${Date.now()}.jpg`,{type:"image/jpeg",lastModified:Date.now()}));
+    return;
+  }
+  if(!fRec){
+    const type=pickRecType(); if(type===null){ $("fMsg").textContent="This browser can't record video here. Use "+(M==="tape"?"Eject":"Library")+" to open a clip."; return; }
+    fChunks=[]; try{ fRec=type?new MediaRecorder(fStream,{mimeType:type}):new MediaRecorder(fStream); }catch(e){ $("fMsg").textContent="Recording couldn't start on this device."; return; }
+    fRec.ondataavailable=e=>{ if(e.data&&e.data.size) fChunks.push(e.data); };
+    fRec.onstop=()=>{ const mt=(fRec&&fRec.mimeType)||type||"video/mp4", blob=new Blob(fChunks,{type:mt}); fRec=null; clearInterval(fTick); closeFinder();
+      const ext=mt.includes("webm")?"webm":"mp4"; takeFile(new File([blob],`clip_${Date.now()}.${ext}`,{type:mt.split(";")[0],lastModified:Date.now()})); };
+    fRec.start(500); fT0=Date.now(); syncFinderUi();
+    fTick=setInterval(()=>{ const s=Math.floor((Date.now()-fT0)/1000); $("fMsg").textContent=`● Recording ${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}  Tap the button again to stop.`; },250);
+  } else { try{ fRec.stop(); }catch(e){} syncFinderUi(); }
 };
-$("fFlip").onclick=async()=>{ fFacing=fFacing==="environment"?"user":"environment"; try{ await startStream(); }catch(e){ $("fMsg").textContent="That camera couldn't start."; } };
-$("fClip").onclick=()=>{ closeFinder(); $("inCam").value=""; $("inCam").accept="video/*"; $("inCam").click(); setTimeout(()=>{ $("inCam").accept="image/*,video/*"; },1000); };
+$("fFlip").onclick=async()=>{ if(fRec) return; fFacing=fFacing==="environment"?"user":"environment"; try{ await startStream(); }catch(e){ $("fMsg").textContent="That camera couldn't start."; } };
+async function setFinderMode(m){ if(fRec||fMode===m) return; fMode=m; syncFinderUi();
+  try{ await startStream(); $("fMsg").textContent = m==="video" ? "Video mode. The clip is recorded clean, then the effect is applied when you render." : (M==="tape"?"Live Tape preview (lighter than the final render).":""); }
+  catch(e){ fMode="photo"; syncFinderUi(); $("fMsg").textContent="The microphone couldn't start. Allow microphone access for this site in Settings › Safari, then try again."; try{ await startStream(); }catch(e2){} } }
+$("fPhoto").onclick=()=>setFinderMode("photo");
+$("fVideo").onclick=()=>setFinderMode("video");
 $("fClose").onclick=closeFinder;
 document.addEventListener("visibilitychange",()=>{ if(document.hidden && fRun) closeFinder(); });
 $("bTrack").onclick=()=>{ if(M==="tape") S.seed=(Math.random()*0xffffffff)>>>0; else C.seed=(Math.random()*0xffffffff)>>>0; remember(); schedule(); };
 async function takeFile(f,fromItem){ if(!f||rendering) return;
   const isVideo=(f.type||"").startsWith("video/") || /\.(mp4|mov|m4v|webm)$/i.test(f.name||"");
   const isAudio=!isVideo && ((f.type||"").startsWith("audio/") || /\.(mp3|m4a|wav|aac|ogg|flac|aif|aiff|caf)$/i.test(f.name||""));
-  $("note").textContent=""; closeViewer();
+  $("note").textContent=""; closeViewer(); clearOrig(); last=null;
   try{
     srcTime=f.lastModified||Date.now(); srcKey=(f.name||"")+":"+(f.size||0)+":"+(f.lastModified||0);
     curItem = fromItem || null;
@@ -1884,7 +1944,7 @@ function camSample(){
   x.fillStyle="#1d1a20"; x.beginPath(); x.ellipse(420,790,80,50,0,Math.PI,0); x.fill();
   return c;
 }
-function useSample(){ src = M==="tape" ? sample() : camSample(); kind="image"; isSample=true; mediaFile=null; srcTime=Date.now(); curItem=null; srcKey="";
+function useSample(){ clearOrig(); last=null; src = M==="tape" ? sample() : camSample(); kind="image"; isSample=true; mediaFile=null; srcTime=Date.now(); curItem=null; srcKey="";
   $("vbox").hidden=true; $("badgeR").hidden=false; $("badgeR").textContent="SAMPLE"; clearResult(); prepDirty=true; }
 
 /* ================= reset (current mode) ================= */
@@ -1911,12 +1971,17 @@ $("resetYes").onclick=()=>{
   $("note").textContent = `${what} settings are back to the defaults.` + (media?" The photo was removed, so the sample is showing.":" Your photo is still loaded.") + (wipe?" Your roll and saved looks are cleared.":"");
 };
 
+$("undoBtn").onclick=()=>histApply(hIdx-1);
+$("redoBtn").onclick=()=>histApply(hIdx+1);
+document.addEventListener("keydown",e=>{ if(!(e.metaKey||e.ctrlKey)||e.key.toLowerCase()!=="z") return; const t=e.target; if(t&&(t.tagName==="INPUT"&&t.type==="text")) return;
+  e.preventDefault(); if(e.shiftKey) histApply(hIdx+1); else histApply(hIdx-1); });
+
 /* ================= offline support ================= */
 if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){ window.addEventListener("load",()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }); }
 
 /* ================= boot ================= */
 (async()=>{
-  useSample(); setMode(M,true);
+  useSample(); setMode(M,true); histCommit(true);
   const items=await dbAll(); items.sort((a,b)=>b.time-a.time); roll=items.map(hydrate); renderRoll();
 })();
 })();
