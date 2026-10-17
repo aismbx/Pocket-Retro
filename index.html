@@ -205,7 +205,7 @@ body.finder-open{overflow:hidden}
 .controls,.stage{display:contents}
 .deck>.head{order:0} #modesBox{order:1} .bezel{order:2} .transport{order:3} #finder{order:3} #vbox{order:4}
 #shelfA{order:5} #shelfB{order:6} #looksBox{order:7} #tabsBox{order:8} .acts{order:9} #note{order:10}
-#resetConfirm{order:3} #rollBox{order:11} .credits{order:13}
+#resetConfirm{order:3} #svBox{order:4} #rollBox{order:11} .credits{order:13}
 @media (min-width:980px) and (min-height:560px){
   html,body{height:100%}
   body{overflow:hidden;padding-block:14px}
@@ -249,6 +249,15 @@ body.finder-open{overflow:hidden}
 #resetAll[aria-pressed="true"]{background:var(--tape);color:#1b1408}
 .resetpop{background:var(--case-2);border-radius:12px;padding:10px 14px;box-shadow:inset 0 0 0 1px var(--edge)}
 .ctl textarea{grid-column:1/-1;width:100%;min-width:0;resize:vertical;background:var(--vfd-bg);border:1px solid var(--edge);border-radius:8px;padding:8px 10px;color:var(--silk);font:16px "VCR OSD Mono",var(--f-osd)}
+
+#liveCanvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+.liverow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 0 2px}
+.liverow .grow{flex:1 1 auto}
+#liveBtn[aria-pressed="true"]{background:var(--rec);color:#fff}
+.svbox summary{cursor:pointer;font:700 14px var(--f-silk);letter-spacing:.16em;text-transform:uppercase;padding:10px 0;color:var(--silk)}
+.svbox[open] summary{color:var(--vfd)}
+#svResult{width:100%;max-height:300px;border-radius:10px;margin-top:10px;background:#000}
+@media (min-width:980px) and (min-height:560px){ .stage #vbox>.liverow{grid-column:1/-1} }
 </style>
 
 </head>
@@ -293,7 +302,7 @@ body.finder-open{overflow:hidden}
 
   <details class="credits">
     <summary>Credits and license</summary>
-    <p>Pocket Retro is an unofficial personal app (version 1.3.0). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
+    <p>Pocket Retro is an unofficial personal app (version 1.4.0). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
     <pre>Copyright © valadaptive
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -308,7 +317,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
   <div class="stage">
   <div class="bezel">
     <div class="screen" id="screen" aria-label="Edited picture. Press and hold to see the original.">
-      <div id="zoomer"><img id="view" alt="Edited picture"><img id="origImg" alt="" hidden></div>
+      <div id="zoomer"><img id="view" alt="Edited picture"><canvas id="liveCanvas" hidden></canvas><img id="origImg" alt="" hidden></div>
       <div class="zbtns" id="zbtns"><button id="zOut" aria-label="Zoom out">−</button><span id="zLevel">100%</span><button id="zIn" aria-label="Zoom in">+</button><button id="zFit" aria-label="Fit to screen" disabled>Fit</button></div>
       <div class="divider" id="divider" hidden><span></span></div>
       <span class="badge" id="badgeL" hidden>ORIGINAL</span>
@@ -350,12 +359,27 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     <div class="ctl"><label for="vStart">Start</label><span class="val" id="vStartV">0:00.0</span><input type="range" id="vStart" min="0" max="1" step="0.1" value="0"></div>
     <div class="ctl"><label for="vEnd">End</label><span class="val" id="vEndV">0:00.0</span><input type="range" id="vEnd" min="0" max="1" step="0.1" value="1"></div>
     <div class="ctl" id="vFpsRow"><span class="lbl">Frame rate</span><div class="seg" role="group" aria-label="Frame rate" id="vFps"><button data-f="12">12 fps</button><button data-f="15">15 fps</button><button data-f="24">24 fps</button><button data-f="30" aria-pressed="true">30 fps</button></div></div>
+    <div class="liverow" id="liveBtns">
+      <button class="pbtn" id="liveBtn" aria-pressed="false">▶ Play preview</button>
+      <label class="ck"><input type="checkbox" id="liveSound" checked> Sound</label>
+      <span class="grow"></span>
+      <button class="pbtn" id="frameSave">Save frame</button><button class="pbtn" id="frameKeep">Frame to roll</button>
+    </div>
     <div class="desc vinfo" id="vInfo"></div>
     <div class="prog" id="prog" hidden><div class="bar"><i id="progBar"></i></div><div class="progrow"><span id="progTxt">Starting…</span><button class="link" id="cancelBtn">Cancel</button></div></div>
     <video id="result" controls playsinline hidden></video>
     <audio id="resultAudio" controls hidden></audio>
   </div>
 
+  <details class="panel svbox" id="svBox" hidden>
+    <summary>Make it a video</summary>
+    <div class="ctl"><label for="svLen">Video length</label><span class="val" id="svLenV">5.0 s</span><input type="range" id="svLen" min="1" max="60" step="0.5" value="5"></div>
+    <div class="ctl"><span class="lbl">Frame rate</span><div class="seg" role="group" aria-label="Frame rate" id="svFps"><button data-f="12">12 fps</button><button data-f="15">15 fps</button><button data-f="24">24 fps</button><button data-f="30" aria-pressed="true">30 fps</button></div></div>
+    <div class="desc vinfo" id="svInfo"></div>
+    <div class="btns"><button class="pbtn" id="svRender">Render video</button><button class="pbtn" id="svSave" hidden>Save video</button></div>
+    <div class="prog" id="svProg" hidden><div class="bar"><i id="svBar"></i></div><div class="progrow"><span id="svTxt">Starting…</span><button class="link" id="svCancel">Cancel</button></div></div>
+    <video id="svResult" controls playsinline loop hidden></video>
+  </details>
   <div class="acts"><button class="save" id="saveBtn">Save photo</button><button class="save alt" id="keepBtn" hidden>Add to roll</button></div>
   <div class="note" id="note" role="status"></div>
 
@@ -372,7 +396,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     <div class="viewer" id="viewer" hidden>
       <div class="vmedia" id="viewerMedia"></div>
       <div class="vinfo2" id="vwInfo"></div>
-      <div class="btns"><button class="pbtn" id="vwSave">Save</button><button class="pbtn" id="vwEdit">Edit again</button><button class="pbtn danger" id="vwDel">Delete</button><button class="link" id="vwClose">Close</button></div>
+      <div class="btns"><button class="pbtn" id="vwSave">Save</button><button class="pbtn" id="vwEdit">Edit again</button><button class="pbtn" id="vwFrame">Save frame</button><button class="pbtn danger" id="vwDel">Delete</button><button class="link" id="vwClose">Close</button></div>
       <div class="confirm" id="vwConfirm" hidden>Delete this from your roll? <button class="link" id="vwYes">Delete</button> <button class="link" id="vwNo">Keep</button></div>
     </div>
     <div class="rollgrid" id="rollGrid"></div>
@@ -717,7 +741,7 @@ function camParams(){ const T=camType(), L=CLOOKS.find(l=>l.id===C.look)||CLOOKS
 function micParams(){ const T=camType(); return {on:true, preset:"mic", mix:1, vol:1, hiss:0.35, hum:0, humHz:60, drive:0.45, comp:0.85, wow:0, flutter:T.id==="toy"?0.2:0,
   width:0, drift:0, dropouts:0, clicks:0, lowCut:T.id==="cyber"?150:300, highCut:T.hi, warmth:0}; }
 
-let M="tape";
+let M="tape", LIVE_LINES=0, liveOn=false;
 const TABS={tape:[["signal","Signal"],["vhs","VHS"],["picture","Picture"],["overlay","Overlay"],["screen","Screen"],["audio","Audio"]],
             camera:[["camera","Camera"],["stamp","Stamp"],["picture","Picture"]]};
 let tabT="signal", tabC="camera", lookId="";
@@ -1122,7 +1146,7 @@ function geometry(source){
   const [sw0,sh0]=dims(source), rotated=P.rot===90||P.rot===270, sw=rotated?sh0:sw0, sh=rotated?sw0:sh0;
   const A={"orig":sw/sh,"4:3":4/3,"16:9":16/9,"1:1":1,"3:4":3/4}[P.aspect]||4/3;
   let cw=sw, ch=sh; if(sw/sh>A) cw=sh*A; else ch=sw/A;
-  const H=P.lines, W=Math.max(16,Math.min(1600,Math.round(H*A/2)*2));
+  const H=LIVE_LINES||P.lines, W=Math.max(16,Math.min(1600,Math.round(H*A/2)*2));
   return {sw0,sh0,sw,sh,cw,ch,W,H};
 }
 function prep(source, offsetMs, reuse){
@@ -1350,7 +1374,7 @@ async function produce(source,tMs,frame,R,render){
     const out=await engine("ntsc",pr.data,pr.W,pr.H,R.S||clone(S),frame);
     const fc=R.fc||(R.fc=document.createElement("canvas")); const g=framed(out.buf,pr.W,pr.H,fc); canvas=fc; rect={x:g.x,y:g.y,w:g.w,h:g.h,cx:g.cx,cy:g.cy,cw:g.cw,ch:g.ch};
     if(P.cc.on && !P.cc.soft) drawCaptions(fc.getContext("2d"),g.x,g.y,g.w,g.h,tMs);
-    if(P.crt.on){ const d=fc.getContext("2d").getImageData(0,0,fc.width,fc.height).data;
+    if(P.crt.on && !LIVE_LINES){ const d=fc.getContext("2d").getImageData(0,0,fc.width,fc.height).data;
       const cr=await engine("crt",d,fc.width,fc.height,clone(P.crt),frame), cc=R.cc||(R.cc=document.createElement("canvas")); bufToCanvas(cr.buf,cr.W,cr.H,cc);
       const s=cr.W/fc.width; rect=Object.assign({},rect,{x:rect.x*s,y:rect.y*s,w:rect.w*s,h:rect.h*s}); canvas=cc;
       if(P.crt.bezel){ const bz=bezel(cc,R); canvas=bz.canvas; rect.x+=bz.pad; rect.y+=bz.pad; } }
@@ -1368,7 +1392,7 @@ async function produce(source,tMs,frame,R,render){
 /* ================= live preview ================= */
 let busy=false, pending=false, timer=null, rendering=false, prepDirty=true, last=null;
 const PR={};
-function schedule(){ if(rendering) return; clearTimeout(timer); timer=setTimeout(run,90); markStale(); }
+function schedule(){ if(rendering||liveOn) return; clearTimeout(timer); timer=setTimeout(run,90); markStale(); }
 function previewFrame(){ return kind==="video" ? Math.round(video.currentTime*V.fps) : 0; }
 async function run(){
   if(!src || rendering) return;
@@ -1453,6 +1477,8 @@ function setSaveLabel(){
   const fresh=result && keyNow()===resultKey;
   $("saveBtn").textContent = kind==="video" ? (fresh?"Save video":"Render video") : kind==="audio" ? (fresh?"Save sound":"Render sound") : isSample?"Save sample photo":"Save photo";
   $("keepBtn").hidden = kind!=="image";
+  $("svBox").hidden = kind!=="image";
+  $("liveBtns").hidden = kind!=="video";
   if(kind==="video") $("vInfo").textContent = `${Math.max(1,Math.round((V.end-V.start)*V.fps))} frames${M==="camera"?` at ${camType().vres.join("×")}`:""}. Each frame goes through the full effect, so expect roughly 2 to 5 frames a second.`;
   if(kind==="audio") $("vInfo").textContent = `Sound only · ${fmtT(V.end-V.start)} selected. The Audio tab controls how it sounds.`;
 }
@@ -1535,6 +1561,7 @@ function progress(done,total,t0){
 
 /* ================= render a video ================= */
 async function renderVideo(){
+  stopLive();
   if(typeof VideoEncoder!=="function" || typeof VideoFrame!=="function"){ $("note").textContent="Video export needs a newer browser: iOS 16.4 or later, or a recent Chrome, Edge or Safari."; return; }
   if(typeof Mp4Muxer==="undefined"){ $("note").textContent="The video file writer didn't load. Check your connection and reload the page."; return; }
   const fps=V.fps, n=Math.max(1,Math.round((V.end-V.start)*fps));
@@ -1838,7 +1865,7 @@ function openViewer(it){
   if(it.type==="photo"){ const im=document.createElement("img"); im.src=u; im.alt="Photo from your roll"; box.appendChild(im); }
   else if(it.type==="video"){ const v=document.createElement("video"); v.src=u; v.controls=true; v.playsInline=true; box.appendChild(v); }
   else { const im=document.createElement("img"); im.src=it.thumbUrl; im.alt=""; box.appendChild(im); if(it.ext!=="zip"){ const a=document.createElement("audio"); a.src=u; a.controls=true; box.appendChild(a); } }
-  $("vwEdit").hidden=!(it.type==="photo" && it.src); $("vwConfirm").hidden=true; $("viewer").hidden=false;
+  $("vwEdit").hidden=!(it.type==="photo" && it.src); $("vwFrame").hidden=it.type!=="video"; $("vwConfirm").hidden=true; $("viewer").hidden=false;
   $("vwInfo").textContent=`${it.mode==="camera"?"Camera":"Tape"} · ${new Date(it.time).toLocaleString()}`;
   $("viewer").scrollIntoView({block:"nearest",behavior:"smooth"});
 }
@@ -1882,6 +1909,7 @@ function buildTabs(){
     b.setAttribute("aria-selected",String(id===tab)); b.onclick=()=>{ tab=id; if(M==="tape") tabT=id; else tabC=id; buildTabs(); buildPanel(); remember(); }; el.appendChild(b); }
 }
 function setMode(m,quiet){
+  stopLive();
   M=m; tab=M==="tape"?tabT:tabC; if(!TABS[M].some(t=>t[0]===tab)) tab=TABS[M][0][0];
   document.body.dataset.mode=M;
   $("mTape").setAttribute("aria-pressed",String(M==="tape")); $("mCamera").setAttribute("aria-pressed",String(M==="camera"));
@@ -1974,7 +2002,7 @@ $("bTrack").onclick=()=>{ if(M==="tape") S.seed=(Math.random()*0xffffffff)>>>0; 
 async function takeFile(f,fromItem,opts){ if(!f||rendering) return;
   const isVideo=(f.type||"").startsWith("video/") || /\.(mp4|mov|m4v|webm)$/i.test(f.name||"");
   const isAudio=!isVideo && ((f.type||"").startsWith("audio/") || /\.(mp3|m4a|wav|aac|ogg|flac|aif|aiff|caf)$/i.test(f.name||""));
-  $("note").textContent=""; closeViewer(); clearOrig(); last=null; resetZoom(); autoKeep=!!(opts&&opts.snap);
+  stopLive(); $("note").textContent=""; closeViewer(); clearOrig(); last=null; resetZoom(); clearStill(); autoKeep=!!(opts&&opts.snap);
   try{
     srcTime=f.lastModified||Date.now(); srcKey=(f.name||"")+":"+(f.size||0)+":"+(f.lastModified||0);
     curItem = fromItem || null;
@@ -1987,6 +2015,105 @@ async function takeFile(f,fromItem,opts){ if(!f||rendering) return;
     $("note").textContent = isAudio ? "That sound file couldn't be opened here. Try an MP3, M4A or WAV." : isVideo ? "That video couldn't be opened here. Try an MP4 or MOV from your camera roll." : "That file couldn't be opened as a photo. Try a JPEG, PNG or HEIC."; } }
 $("inCam").addEventListener("change",e=>takeFile(e.target.files[0],null,{snap:M==="camera"}));
 $("inLib").addEventListener("change",e=>takeFile(e.target.files[0]));
+
+/* ================= live video preview ================= */
+const liveC=$("liveCanvas"), LR={};
+function stopLive(){ if(!liveOn) return; liveOn=false; }
+async function startLive(){
+  if(kind!=="video"||rendering||liveOn) return;
+  liveOn=true; $("liveBtn").textContent="■ Stop preview"; $("liveBtn").setAttribute("aria-pressed","true");
+  const wasMuted=video.muted; video.muted=!$("liveSound").checked; video.loop=false;
+  await seek(video,Math.max(V.start,Math.min(+$("vPos").value||V.start,V.end-0.05)));
+  try{ await video.play(); }catch(e){ video.muted=true; try{ await video.play(); }catch(e2){} }
+  LIVE_LINES = M==="tape" ? Math.min(P.lines,240) : 0;
+  liveC.hidden=false; $("badgeR").textContent="LIVE";
+  let f=0, t0=performance.now(), shown=0;
+  while(liveOn && kind==="video"){
+    if(video.currentTime>=V.end-0.02 || video.ended){ video.pause(); await seek(video,V.start); try{ await video.play(); }catch(e){} }
+    const t=video.currentTime;
+    let res; try{ res=await produce(video,t*1000,Math.round(t*V.fps)+(f++),LR,true); }catch(e){ break; }
+    if(!liveOn) break;
+    const c=res.canvas; if(liveC.width!==c.width||liveC.height!==c.height){ liveC.width=c.width; liveC.height=c.height; $("screen").style.aspectRatio=`${c.width} / ${c.height}`; fitScreen(); }
+    liveC.getContext("2d").drawImage(c,0,0); shown++;
+    $("vPos").value=t; $("vPosV").textContent=fmtT(t);
+    const el=(performance.now()-t0)/1000; if(el>0.5) $("vfdState").textContent=`LIVE ${Math.round(shown/el)}fps`;
+    await new Promise(r=>requestAnimationFrame(r));
+  }
+  liveOn=false; LIVE_LINES=0; video.pause(); video.muted=wasMuted||true;
+  $("liveBtn").textContent="▶ Play preview"; $("liveBtn").setAttribute("aria-pressed","false"); $("badgeR").textContent=kind==="video"?"VIDEO":$("badgeR").textContent;
+  $("vfdState").textContent="READY";
+  if(kind==="video"){ prepDirty=true; schedule(); setTimeout(()=>{ liveC.hidden=true; },250); } else liveC.hidden=true;
+}
+$("liveBtn").onclick=()=>{ if(liveOn) stopLive(); else startLive(); };
+$("liveSound").onchange=()=>{ if(liveOn) video.muted=!$("liveSound").checked; };
+
+/* ================= save a single frame ================= */
+async function frameBlob(src){
+  let c=src;
+  if(src instanceof HTMLVideoElement){ c=document.createElement("canvas"); c.width=src.videoWidth; c.height=src.videoHeight; c.getContext("2d").drawImage(src,0,0); }
+  return { blob: await toBlob(c,"image/jpeg",0.95), canvas:c };
+}
+async function saveFrame(src){
+  const {blob}=await frameBlob(src); if(!blob) return;
+  const d=await getDownloads(); if(!d){ $("note").textContent="Saving isn't available here. Use Frame to roll instead."; return; }
+  try{ await d.save({filename:`pocket-retro_frame_${stamp()}.jpg`,data:blob}); $("note").textContent="Frame saved."; }
+  catch(e){ $("note").textContent= e&&e.code==="declined" ? "Not saved." : "Saving isn't available here right now."; }
+}
+async function frameToRoll(src){
+  const {blob,canvas}=await frameBlob(src); if(!blob) return;
+  await addToRoll({type:"photo",blob,thumb:await thumbOf(canvas),ext:"jpg"}); $("note").textContent="Frame added to your roll.";
+}
+const currentFrame=()=> liveOn||!liveC.hidden ? liveC : (last&&last.canvas);
+$("frameSave").onclick=()=>{ const c=currentFrame(); if(c) saveFrame(c); };
+$("frameKeep").onclick=()=>{ const c=currentFrame(); if(c) frameToRoll(c); };
+$("vwFrame").onclick=()=>{ const v=document.querySelector("#viewerMedia video"); if(v&&v.videoWidth){ v.pause(); saveFrame(v); } };
+
+/* ================= make a video from a photo ================= */
+const SV={len:5,fps:30}; let still=null;
+function clearStill(){ if(still&&still.url) URL.revokeObjectURL(still.url); still=null; $("svResult").hidden=true; $("svResult").removeAttribute("src"); $("svSave").hidden=true; }
+$("svLen").addEventListener("input",e=>{ SV.len=+e.target.value; $("svLenV").textContent=SV.len.toFixed(1)+" s"; svInfo(); });
+$("svFps").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; SV.fps=+b.dataset.f; $("svFps").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); svInfo(); });
+function svInfo(){ $("svInfo").textContent=`${Math.round(SV.len*SV.fps)} frames. The noise, snow and tape wobble change every frame, so the photo comes to life. The video is silent.`; }
+svInfo();
+let svCancel=false;
+$("svCancel").onclick=()=>{ svCancel=true; $("svTxt").textContent="Stopping…"; };
+$("svRender").onclick=async()=>{
+  if(rendering||kind!=="image") return;
+  if(typeof VideoEncoder!=="function"||typeof Mp4Muxer==="undefined"){ $("note").textContent="Video export needs a newer browser: iOS 16.4 or later, or a recent Chrome, Edge or Safari."; return; }
+  const fps=SV.fps, n=Math.max(1,Math.round(SV.len*fps));
+  rendering=true; svCancel=false; clearStill(); $("svProg").hidden=false; $("svBar").style.width="0%"; $("svTxt").textContent="Getting ready…";
+  let lock=null; try{ lock=await navigator.wakeLock?.request("screen"); }catch(e){}
+  try{
+    const Rr={S:clone(S)}, first=await produce(src,0,0,Rr,true);
+    const Wo=first.canvas.width+(first.canvas.width&1), Ho=first.canvas.height+(first.canvas.height&1);
+    const vp=await pickVideoConfig(Wo,Ho,fps); if(!vp) throw new Error("size");
+    const muxer=new Mp4Muxer.Muxer({target:new Mp4Muxer.ArrayBufferTarget(),video:{codec:vp.mux,width:Wo,height:Ho,frameRate:fps},fastStart:"in-memory",firstTimestampBehavior:"offset"});
+    let err=null; const venc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m),error:e=>{err=e;}}); venc.configure(vp.cfg);
+    const fc=document.createElement("canvas"); fc.width=Wo; fc.height=Ho; const fx=fc.getContext("2d"), t0=performance.now(), thumb=await thumbOf(first.canvas);
+    for(let k=0;k<n;k++){
+      if(svCancel||err) break;
+      const res = k===0 ? first : await produce(src,k*1000/fps,k,Rr,true);
+      fx.fillStyle="#000"; fx.fillRect(0,0,Wo,Ho); fx.drawImage(res.canvas,0,0);
+      const fr=new VideoFrame(fc,{timestamp:Math.round(k*1e6/fps),duration:Math.round(1e6/fps)}); venc.encode(fr,{keyFrame:k%(fps*2)===0}); fr.close();
+      while(venc.encodeQueueSize>3) await sleep(4);
+      const el=(performance.now()-t0)/1000, left=(n-k-1)/((k+1)/Math.max(el,0.001));
+      $("svBar").style.width=((k+1)/n*100).toFixed(1)+"%"; $("svTxt").textContent=`Frame ${k+1} of ${n}`+(k>3?` · about ${left<60?Math.ceil(left)+" s":Math.ceil(left/60)+" min"} left`:"");
+      $("vfdState").textContent=`REC ${Math.round((k+1)/n*100)}%`;
+      if(k%12===0) await show(res,false);
+    }
+    if(err) throw err;
+    await venc.flush(); venc.close();
+    if(svCancel){ $("note").textContent="Render cancelled."; }
+    else { muxer.finalize(); const blob=new Blob([muxer.target.buffer],{type:"video/mp4"});
+      still={blob,url:URL.createObjectURL(blob)}; $("svResult").src=still.url; $("svResult").hidden=false; $("svSave").hidden=false;
+      await addToRoll({type:"video",blob,thumb,ext:"mp4"});
+      $("note").textContent=`Video ready: ${SV.len.toFixed(1)} seconds, ${(blob.size/1048576).toFixed(1)} MB, and added to your roll.`; }
+  }catch(e){ $("note").textContent = e&&e.message==="size" ? "This device can't encode a video that size. Try fewer scan lines, no CRT look or a smaller export size." : "The video couldn't be made on this device. Try a shorter length or a lower frame rate."; }
+  try{ lock&&lock.release(); }catch(e){} rendering=false; $("svProg").hidden=true; $("vfdState").textContent="READY"; prepDirty=true; schedule();
+};
+$("svSave").onclick=async()=>{ if(!still) return; const d=await getDownloads(); if(!d){ $("note").textContent="Saving isn't available here. You can find it in your roll."; return; }
+  try{ await d.save({filename:`pocket-retro_${stamp()}.mp4`,data:still.blob}); $("note").textContent="Tap Save Video in the share sheet to add it to Photos."; }
+  catch(e){ $("note").textContent= e&&e.code==="declined" ? "Not saved." : "Saving isn't available here right now."; } };
 
 /* ================= save ================= */
 let downloads=null;
