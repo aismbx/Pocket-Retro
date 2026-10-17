@@ -1,5 +1,5 @@
 /* Pocket Retro offline cache. Change VERSION when you upload new files so phones pick them up. */
-const VERSION="pocket-retro-1.1.0";
+const VERSION="pocket-retro-1.2.0";
 const FILES=["./", "index.html", "vt323-latin-400-normal.woff2", "barlow-condensed-latin-500-normal.woff2", "barlow-condensed-latin-600-normal.woff2", "barlow-condensed-latin-700-normal.woff2", "barlow-latin-400-normal.woff2", "barlow-latin-500-normal.woff2", "barlow-latin-600-normal.woff2", "mp4-muxer.js", "apple-touch-icon.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png", "manifest.webmanifest"];
 self.addEventListener("install",e=>{ e.waitUntil(caches.open(VERSION).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting())); });
 self.addEventListener("activate",e=>{ e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==VERSION).map(k=>caches.delete(k)))).then(()=>self.clients.claim())); });

@@ -200,6 +200,34 @@ body.finder-open{overflow:hidden}
 .cmp:disabled{opacity:.35;cursor:default}
 #view,#origImg{-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
 .screen.cmp-on #view{pointer-events:none;-webkit-touch-callout:none}
+
+/* ---------- layout: phones stack in one column; wide screens get controls | preview, roll along the bottom ---------- */
+.controls,.stage{display:contents}
+.deck>.head{order:0} #modesBox{order:1} .bezel{order:2} .transport{order:3} #finder{order:3} #vbox{order:4}
+#shelfA{order:5} #shelfB{order:6} #looksBox{order:7} #tabsBox{order:8} .acts{order:9} #note{order:10}
+#rollBox{order:11} .resetbox{order:12} .credits{order:13}
+@media (min-width:980px) and (min-height:560px){
+  html,body{height:100%}
+  body{overflow:hidden;padding-block:14px}
+  .deck{max-width:1560px;height:100%;display:grid;grid-template-columns:minmax(380px,450px) minmax(0,1fr);
+    grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"head head" "ctrl stage" "roll roll";gap:14px 24px}
+  .deck>.head{grid-area:head}
+  .controls,.stage{display:flex;flex-direction:column;gap:16px;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--edge) transparent}
+  .controls{grid-area:ctrl;padding-right:8px}
+  .stage{grid-area:stage;padding-right:4px}
+  .controls>*,.stage>*{flex:0 0 auto}
+  .stage .bezel{display:flex;flex-direction:column}
+  .stage .screen{height:max(240px,calc(100dvh - 540px));width:auto;max-width:100%;margin:0 auto}
+  .stage .transport{max-width:560px;width:100%;margin:0 auto}
+  .stage .acts,.stage #note{max-width:560px;width:100%;margin-inline:auto}
+  #rollBox{grid-area:roll;display:grid;grid-template-columns:230px minmax(0,1fr);column-gap:16px;align-items:start;padding-block:8px 10px}
+  #rollBox>.rollhead,#rollBox>.rollbar,#rollBox>#delConfirm,#rollBox>.empty{grid-column:1}
+  #rollBox>.rollgrid{grid-column:2;grid-row:1 / span 4;display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:112px;grid-template-rows:112px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding-bottom:6px}
+  #rollBox>.empty{max-width:none}
+  #rollBox .viewer{position:fixed;z-index:40;top:50%;left:50%;transform:translate(-50%,-50%);width:min(760px,90vw);max-height:88vh;overflow:auto;margin:0;
+    background:var(--case-2);box-shadow:0 0 0 100vmax rgba(0,0,0,.6),0 20px 60px rgba(0,0,0,.6);padding:14px}
+  #rollBox .vmedia img,#rollBox .vmedia video{max-height:70vh}
+}
 </style>
 
 </head>
@@ -210,11 +238,63 @@ body.finder-open{overflow:hidden}
     <div class="vfd" aria-live="polite"><span id="vfdState">READY</span><span id="vfdTape">LP</span><span id="vfdLines" class="dim">480</span></div>
   </div>
 
-  <div class="modes" role="group" aria-label="Mode">
+  <div class="controls">
+  <div class="modes" id="modesBox" role="group" aria-label="Mode">
     <button id="mCamera" aria-pressed="false"><b>Camera</b><small>Low-res digicam</small></button>
     <button id="mTape" aria-pressed="true"><b>Tape</b><small>NTSC and VHS</small></button>
   </div>
 
+  <div id="shelfA">
+    <div class="sect-label" id="shelfALabel">Tape</div>
+    <div class="tapes" id="tapes" role="group" aria-label="Presets"></div>
+  </div>
+  <div id="shelfB">
+    <div class="sect-label" id="shelfBLabel">Your presets</div>
+    <div class="tapes" id="mine" role="group" aria-label="More presets"></div>
+    <div class="remove" id="removeWrap" hidden><button class="link" id="removeBtn">Remove “<span id="removeName"></span>”</button>
+      <span id="removeConfirm" hidden>Remove this imported preset? <button class="link" id="removeYes">Remove</button> <button class="link" id="removeNo">Keep</button></span></div>
+  </div>
+  <div id="looksBox">
+    <div class="sect-label">My looks</div>
+    <div class="tapes" id="looks" role="group" aria-label="My looks"></div>
+    <form class="lookform" id="lookForm" hidden>
+      <input type="text" id="lookName" maxlength="40" placeholder="Name this look, e.g. 2004 Disney Channel" aria-label="Look name">
+      <button class="pbtn" type="submit" id="lookSave">Save</button><button class="link" type="button" id="lookCancel">Cancel</button>
+    </form>
+    <div class="remove" id="lookRemoveWrap" hidden><button class="link" id="lookRemove">Remove “<span id="lookRemoveName"></span>”</button>
+      <span id="lookRemoveConfirm" hidden>Remove this look? <button class="link" id="lookRemoveYes">Remove</button> <button class="link" id="lookRemoveNo">Keep</button></span></div>
+  </div>
+
+  <div id="tabsBox">
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="panel" id="panel" role="tabpanel" style="margin-top:10px"></div>
+  </div>
+
+  <div class="panel resetbox">
+    <button class="pbtn" id="resetAll">Reset settings</button>
+    <div id="resetConfirm" hidden>
+      <p class="confirm" id="resetMsg"></p>
+      <label class="ck"><input type="checkbox" id="resetMedia"> Also remove the current photo, video or sound</label>
+      <label class="ck"><input type="checkbox" id="resetWipe"> Also delete my roll and saved looks</label>
+      <div class="btns"><button class="pbtn danger" id="resetYes">Reset</button><button class="link" id="resetNo">Cancel</button></div>
+    </div>
+  </div>
+
+  <details class="credits">
+    <summary>Credits and license</summary>
+    <p>Pocket Retro is an unofficial personal app (version 1.2.0). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
+    <pre>Copyright © valadaptive
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</pre>
+    <p>Your photos, videos and sounds are edited on your device and are not uploaded.</p>
+  </details>
+  </div>
+
+  <div class="stage">
   <div class="bezel">
     <div class="screen" id="screen" aria-label="Edited picture. Press and hold to see the original.">
       <img id="view" alt="Edited picture">
@@ -259,34 +339,10 @@ body.finder-open{overflow:hidden}
     <audio id="resultAudio" controls hidden></audio>
   </div>
 
-  <div id="shelfA">
-    <div class="sect-label" id="shelfALabel">Tape</div>
-    <div class="tapes" id="tapes" role="group" aria-label="Presets"></div>
-  </div>
-  <div id="shelfB">
-    <div class="sect-label" id="shelfBLabel">Your presets</div>
-    <div class="tapes" id="mine" role="group" aria-label="More presets"></div>
-    <div class="remove" id="removeWrap" hidden><button class="link" id="removeBtn">Remove “<span id="removeName"></span>”</button>
-      <span id="removeConfirm" hidden>Remove this imported preset? <button class="link" id="removeYes">Remove</button> <button class="link" id="removeNo">Keep</button></span></div>
-  </div>
-  <div>
-    <div class="sect-label">My looks</div>
-    <div class="tapes" id="looks" role="group" aria-label="My looks"></div>
-    <form class="lookform" id="lookForm" hidden>
-      <input type="text" id="lookName" maxlength="40" placeholder="Name this look, e.g. 2004 Disney Channel" aria-label="Look name">
-      <button class="pbtn" type="submit" id="lookSave">Save</button><button class="link" type="button" id="lookCancel">Cancel</button>
-    </form>
-    <div class="remove" id="lookRemoveWrap" hidden><button class="link" id="lookRemove">Remove “<span id="lookRemoveName"></span>”</button>
-      <span id="lookRemoveConfirm" hidden>Remove this look? <button class="link" id="lookRemoveYes">Remove</button> <button class="link" id="lookRemoveNo">Keep</button></span></div>
-  </div>
-
-  <div>
-    <div class="tabs" role="tablist" id="tabs"></div>
-    <div class="panel" id="panel" role="tabpanel" style="margin-top:10px"></div>
-  </div>
-
   <div class="acts"><button class="save" id="saveBtn">Save photo</button><button class="save alt" id="keepBtn" hidden>Add to roll</button></div>
   <div class="note" id="note" role="status"></div>
+
+  </div>
 
   <div class="panel rollbox" id="rollBox">
     <div class="rollhead"><span class="sect-label">Roll · <span id="rollCount">0</span></span><button class="link" id="rollSelect">Select</button></div>
@@ -306,28 +362,6 @@ body.finder-open{overflow:hidden}
     <div class="empty" id="rollEmpty">Camera shots, rendered videos and sounds land here. Tape photos join when you tap Add to roll. The roll stays in this browser only, so save anything you want to keep.</div>
   </div>
 
-  <div class="panel resetbox">
-    <button class="pbtn" id="resetAll">Reset settings</button>
-    <div id="resetConfirm" hidden>
-      <p class="confirm" id="resetMsg"></p>
-      <label class="ck"><input type="checkbox" id="resetMedia"> Also remove the current photo, video or sound</label>
-      <label class="ck"><input type="checkbox" id="resetWipe"> Also delete my roll and saved looks</label>
-      <div class="btns"><button class="pbtn danger" id="resetYes">Reset</button><button class="link" id="resetNo">Cancel</button></div>
-    </div>
-  </div>
-
-  <details class="credits">
-    <summary>Credits and license</summary>
-    <p>Pocket Retro is an unofficial personal app (version 1.1.0). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
-    <pre>Copyright © valadaptive
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</pre>
-    <p>Your photos, videos and sounds are edited on your device and are not uploaded.</p>
-  </details>
 </div>
 
 <script id="engine">
