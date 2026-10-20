@@ -258,14 +258,54 @@ body.finder-open{overflow:hidden}
 .svbox[open] summary{color:var(--vfd)}
 #svResult{width:100%;max-height:300px;border-radius:10px;margin-top:10px;background:#000}
 @media (min-width:980px) and (min-height:560px){ .stage #vbox>.liverow{grid-column:1/-1} }
+
+#backupBox{order:12}
+.backupbox summary{cursor:pointer;font:700 14px var(--f-silk);letter-spacing:.16em;text-transform:uppercase;padding:10px 0;color:var(--silk)}
+.backupbox[open] summary{color:var(--vfd)}
+.backupbox .desc{font-size:13px;color:var(--silk-dim);margin:0 0 2px}
+.logorow{grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-top:4px}
+.logothumb{width:64px;height:48px;border-radius:6px;display:grid;place-items:center;font-size:12px;color:var(--silk-dim);overflow:hidden;
+  background:repeating-conic-gradient(#3a3d43 0 25%,#2a2d32 0 50%) 0 0/12px 12px;box-shadow:inset 0 0 0 1px var(--edge)}
+.logothumb img{max-width:100%;max-height:100%;object-fit:contain}
+
+/* ---------- light / dark switch ---------- */
+.headr{display:flex;align-items:center;gap:8px;min-width:0}
+.themebtn{flex:0 0 auto;width:34px;height:28px;border:0;border-radius:7px;background:var(--case-3);color:var(--silk);cursor:pointer;display:grid;place-items:center;box-shadow:inset 0 1px 0 var(--edge);padding:0}
+.themebtn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+:root[data-theme="light"]{color-scheme:light;
+  --case:#e6e1d6; --case-2:#f3efe7; --case-3:#d9d2c4; --edge:#c2b9a8; --silk:#29251f; --silk-dim:#685f53;
+  --vfd:#0a7262; --vfd-dim:#9dbab2; --vfd-bg:#d8d0c1; --tape:#dd921f; --focus:#b36a00}
+:root[data-theme="light"] .vfd{--vfd:#73f2d8;--vfd-dim:#244c45;background:#0b1513;border-color:#000}
+:root[data-theme="light"] body{background-image:none}
+:root[data-theme="light"] .ctl,:root[data-theme="light"] .ghead{border-bottom-color:#d6cebf}
+:root[data-theme="light"] .tbtn .key,:root[data-theme="light"] .save.alt{box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 3px 0 #a89e8b}
+:root[data-theme="light"] .tbtn:active .key{box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 1px 0 #a89e8b}
+:root[data-theme="light"] .tabs,:root[data-theme="light"] .modes,:root[data-theme="light"] .bar{box-shadow:inset 0 0 0 1px #c5bcaa}
+:root[data-theme="light"] .pbtn[aria-pressed="true"],:root[data-theme="light"] .cmp[aria-pressed="true"]{color:#fff}
+:root[data-theme="light"] .pbtn.danger{color:#b3261e}
+:root[data-theme="light"] .save{box-shadow:0 3px 0 #000}
+:root[data-theme="light"] .ctl .val{text-shadow:none}
+:root[data-theme="light"] .logothumb{background:repeating-conic-gradient(#d3ccbe 0 25%,#efebe3 0 50%) 0 0/12px 12px}
+:root[data-theme="light"] .lookform input,:root[data-theme="light"] .ctl textarea{background:#fbf9f5}
+@media (max-width:440px){
+  .brand{font-size:16px;letter-spacing:.07em}
+  .head{gap:8px}
+  .headr{gap:6px}
+  .vfd{gap:7px;font-size:16px;padding:4px 7px}
+  .themebtn{width:30px}
+  .hintrow{flex-wrap:wrap;row-gap:6px}
+  .hbtns{gap:4px}
+  .cmp{padding:6px 8px;letter-spacing:.08em}
+}
 </style>
 
+<script>try{ if(localStorage.getItem("pretro-theme")==="light") document.documentElement.dataset.theme="light"; }catch(e){}</script>
 </head>
 <body>
 <div class="deck">
   <div class="head">
     <div class="brand">Pocket Retro</div>
-    <div class="vfd" aria-live="polite"><span id="vfdState">READY</span><span id="vfdTape">LP</span><span id="vfdLines" class="dim">480</span></div>
+    <div class="headr"><div class="vfd" aria-live="polite"><span id="vfdState">READY</span><span id="vfdTape">LP</span><span id="vfdLines" class="dim">480</span></div><button class="themebtn" id="themeBtn" type="button" aria-label="Switch to light mode" title="Switch to light mode"></button></div>
   </div>
 
   <div class="controls">
@@ -300,9 +340,18 @@ body.finder-open{overflow:hidden}
     <div class="panel" id="panel" role="tabpanel" style="margin-top:10px"></div>
   </div>
 
+  <details class="panel backupbox" id="backupBox">
+    <summary>Backup and restore</summary>
+    <p class="desc">Your roll, looks, imported presets, settings and channel logo live only in this browser. Save them all in one backup file, so you can get them back if Safari clears its data or you change phones.</p>
+    <div class="btns"><button class="pbtn" id="bkSave">Back up everything</button><button class="pbtn" id="bkLoad">Restore a backup</button></div>
+    <div class="confirm" id="bkConfirm" hidden>Restore “<span id="bkName"></span>”? Its roll items and looks are added to what's here, and your settings and channel logo are replaced with the backup's. <button class="link" id="bkYes">Restore</button> <button class="link" id="bkNo">Cancel</button></div>
+    <div class="anote" id="bkNote" role="status"></div>
+    <input type="file" id="inBackup" class="vh" accept=".zip,application/zip" tabindex="-1" aria-hidden="true">
+  </details>
+
   <details class="credits">
     <summary>Credits and license</summary>
-    <p>Pocket Retro is an unofficial personal app (version 1.4.1). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
+    <p>Pocket Retro is an unofficial personal app (version 1.5.1). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
     <pre>Copyright © valadaptive
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -845,6 +894,7 @@ function presetSettings(p){ if(p.j) return fromNtscRs(p.j); const S=merge(defaul
 const PDEF={aspect:"4:3", rot:0, flip:false, lines:480, bright:0, contrast:1, sat:1, warmth:0, osd:"none",
   border:"none", borderColor:"#000000", borderSize:0.06,
   rating:"none", ratingPos:"tl", ratingOpacity:0.6, ratingSize:0.22, ratingTime:"all",
+  logoOn:false, logoPos:"tr", logoX:0, logoY:0, logoSize:0.14, logoOpacity:0.55, logoWhite:false, logoTime:"all",
   crt:{on:false,curve:0.5,scan:0.55,mask:"grille",maskAmt:0.35,glow:0.35,vig:0.45,bezel:true},
   cc:{on:false,text:"[ MUSIC PLAYING ]",size:1,pos:"bottom",offset:0.08,align:"center",color:"white",bg:"black",soft:false,from:0,to:0}};
 /* TV Parental Guidelines icons (the user's SVG files) */
@@ -997,6 +1047,16 @@ const CONTROLS={
   {k:"rng",id:"rop",label:"Opacity",min:0.15,max:1,step:0.01,fmt:pct,get:()=>P.ratingOpacity,set:v=>P.ratingOpacity=v,pic:1,show:()=>P.rating!=="none"},
   {k:"rng",id:"rsize",label:"Size",min:0.1,max:0.4,step:0.01,fmt:pct,get:()=>P.ratingSize,set:v=>P.ratingSize=v,pic:1,show:()=>P.rating!=="none",desc:"Height of the badge compared with the picture."},
   {k:"seg",id:"rtime",label:"In videos, show it",opts:[["all","The whole time"],["15","First 15 seconds"],["5","First 5 seconds"]],get:()=>P.ratingTime,set:v=>P.ratingTime=v,pic:1,show:()=>P.rating!=="none"},
+  {k:"head",label:"Channel logo"},
+  {k:"logo",id:"logoFile",label:"Logo image",desc:"Upload your own channel logo. A PNG with a see-through background works best. It goes through the effect, so it smears like a real broadcast."},
+  {k:"sw",id:"logoOn",label:"Show logo",get:()=>P.logoOn,set:v=>{P.logoOn=v; buildPanel();},pic:1,show:()=>!!LOGO.url},
+  {k:"seg",id:"lpos",label:"Corner",opts:[["tl","Top left"],["tr","Top right"],["bl","Bottom left"],["br","Bottom right"]],get:()=>P.logoPos,set:v=>P.logoPos=v,pic:1,show:()=>logoShown()},
+  {k:"rng",id:"lx",label:"Move left or right",min:-0.5,max:0.5,step:0.005,fmt:v=>v===0?"0":(v<0?"\u2190 ":"\u2192 ")+Math.round(Math.abs(v)*100)+"%",get:()=>P.logoX,set:v=>P.logoX=v,pic:1,show:()=>logoShown()},
+  {k:"rng",id:"ly",label:"Move up or down",min:-0.5,max:0.5,step:0.005,fmt:v=>v===0?"0":(v>0?"\u2191 ":"\u2193 ")+Math.round(Math.abs(v)*100)+"%",get:()=>P.logoY,set:v=>P.logoY=v,pic:1,show:()=>logoShown(),desc:"Fine-tunes the spot, starting from the corner you picked."},
+  {k:"rng",id:"lsize",label:"Size",min:0.04,max:0.6,step:0.01,fmt:pct,get:()=>P.logoSize,set:v=>P.logoSize=v,pic:1,show:()=>logoShown(),desc:"Height of the logo compared with the picture."},
+  {k:"rng",id:"lop",label:"Opacity",min:0.1,max:1,step:0.01,fmt:pct,get:()=>P.logoOpacity,set:v=>P.logoOpacity=v,pic:1,show:()=>logoShown()},
+  {k:"sw",id:"lwhite",label:"Make it white",get:()=>P.logoWhite,set:v=>P.logoWhite=v,pic:1,show:()=>logoShown(),desc:"Turns the logo into a white shape, the classic see-through look of 2000s channel logos."},
+  {k:"seg",id:"ltime",label:"In videos, show it",opts:[["all","The whole time"],["15","First 15 seconds"],["5","First 5 seconds"]],get:()=>P.logoTime,set:v=>P.logoTime=v,pic:1,show:()=>logoShown()},
  ],
 };
 
@@ -1062,6 +1122,13 @@ function buildPanel(){
       row.innerHTML=`<label for="c-${c.id}"></label><textarea id="c-${c.id}" rows="2" maxlength="160" spellcheck="false"></textarea>`;
       row.querySelector("label").textContent=c.label; const ta=row.querySelector("textarea"); ta.value=c.get();
       let tt=null; ta.addEventListener("input",()=>{ c.set(ta.value.split("\n").slice(0,4).join("\n")); clearTimeout(tt); tt=setTimeout(()=>ch(),250); });
+    } else if(c.k==="logo"){
+      row.innerHTML=`<span class="lbl"></span><div class="logorow"><span class="logothumb"></span><button class="pbtn" type="button" id="c-logoPick"></button><button class="link" type="button" id="c-logoRemove">Remove</button><input type="file" accept="image/png,image/*" class="vh" tabindex="-1" aria-hidden="true" id="inLogo"></div>`;
+      row.querySelector(".lbl").textContent=c.label; const th=row.querySelector(".logothumb"), pb=row.querySelector("#c-logoPick"), rm=row.querySelector("#c-logoRemove"), fi=row.querySelector("input");
+      if(LOGO.url){ const im=document.createElement("img"); im.src=LOGO.url; im.alt="Your channel logo"; th.appendChild(im); } else th.textContent="None";
+      pb.textContent=LOGO.url?"Replace":"Choose image"; rm.hidden=!LOGO.url;
+      pb.onclick=()=>fi.click(); fi.onchange=async()=>{ const f=fi.files&&fi.files[0]; fi.value=""; if(f) await setLogo(f); };
+      rm.onclick=()=>clearLogo();
     } else if(c.k==="sw"){
       row.innerHTML=`<span class="lbl"></span><button class="sw" id="c-${c.id}"></button>`;
       row.querySelector(".lbl").textContent=c.label; const b=row.querySelector("button"); b.setAttribute("aria-label",c.label);
@@ -1167,9 +1234,41 @@ function prep(source, offsetMs, reuse){
   }
   if(P.osd!=="none") drawOsd(x,W,H,offsetMs||0);
   if(P.rating!=="none") drawRating(x,W,H,offsetMs||0);
+  if(P.logoOn && LOGO.img) drawLogo(x,W,H,offsetMs||0);
   if(P.cc.on && P.cc.soft) drawCaptions(x,0,0,W,H,offsetMs||0);
   if(reuse){ reuse.o=o; reuse.c=c; }
   return {W,H,data:x.getImageData(0,0,W,H).data, orig:c};
+}
+/* ---- channel logo: the user's own image, kept in this browser (localStorage "pretro-logo") ---- */
+const LOGO={url:null,img:null,white:null};
+function loadLogo(url){ LOGO.url=url||null; LOGO.img=null; LOGO.white=null;
+  if(url){ const i=new Image(); i.onload=()=>{ prepDirty=true; schedule(); }; i.src=url; LOGO.img=i; } }
+try{ loadLogo(localStorage.getItem("pretro-logo")); }catch(e){}
+function logoShown(){ return !!LOGO.url && P.logoOn; }
+async function setLogo(f){
+  try{ const u=URL.createObjectURL(f);
+    const im=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=u; });
+    let w=im.naturalWidth||512, h=im.naturalHeight||512; const s=Math.min(1,512/Math.max(w,h)); w=Math.max(1,Math.round(w*s)); h=Math.max(1,Math.round(h*s));
+    const cv=document.createElement("canvas"); cv.width=w; cv.height=h; cv.getContext("2d").drawImage(im,0,0,w,h); URL.revokeObjectURL(u);
+    const url=cv.toDataURL("image/png");
+    try{ localStorage.setItem("pretro-logo",url); }catch(e){ $("note").textContent="The logo is too big to keep after you close the app. Try a smaller PNG."; }
+    loadLogo(url); P.logoOn=true; buildPanel(); changed(true);
+    if(!$("note").textContent.startsWith("The logo")) $("note").textContent="Logo added. Use the controls below it to place it.";
+  }catch(e){ $("note").textContent="That image couldn't be opened. Try a PNG file."; }
+}
+function clearLogo(){ try{ localStorage.removeItem("pretro-logo"); }catch(e){} loadLogo(null); P.logoOn=false; buildPanel(); changed(true); }
+function drawLogo(x,W,H,offsetMs){
+  if(kind==="video" && P.logoTime!=="all" && (offsetMs/1000 - V.start) > +P.logoTime) return;
+  const im=LOGO.img; if(!im||!im.complete||!im.naturalWidth) return;
+  let h=Math.max(2,Math.round(H*P.logoSize)), w=Math.max(2,Math.round(h*im.naturalWidth/im.naturalHeight));
+  if(w>W*0.95){ const k=W*0.95/w; w=Math.round(w*k); h=Math.round(h*k); }
+  const m=Math.round(H*0.065), mx=Math.round(Math.max(m, W*0.06));
+  const px=(P.logoPos[1]==="l"?mx:W-mx-w)+Math.round(P.logoX*W), py=(P.logoPos[0]==="t"?m:H-m-h)-Math.round(P.logoY*H);
+  let src=im;
+  if(P.logoWhite){ if(!LOGO.white||LOGO.white.src!==im){ const c=document.createElement("canvas"); c.width=im.naturalWidth; c.height=im.naturalHeight;
+      const g=c.getContext("2d"); g.drawImage(im,0,0); g.globalCompositeOperation="source-in"; g.fillStyle="#fff"; g.fillRect(0,0,c.width,c.height); LOGO.white={src:im,c}; }
+    src=LOGO.white.c; }
+  x.save(); x.globalAlpha=P.logoOpacity; x.imageSmoothingEnabled=true; x.drawImage(src,px,py,w,h); x.restore();
 }
 function drawRating(x,W,H,offsetMs){
   if(kind==="video" && P.ratingTime!=="all" && (offsetMs/1000 - V.start) > +P.ratingTime) return;
@@ -1565,6 +1664,11 @@ async function renderVideo(){
   if(typeof VideoEncoder!=="function" || typeof VideoFrame!=="function"){ $("note").textContent="Video export needs a newer browser: iOS 16.4 or later, or a recent Chrome, Edge or Safari."; return; }
   if(typeof Mp4Muxer==="undefined"){ $("note").textContent="The video file writer didn't load. Check your connection and reload the page."; return; }
   const fps=V.fps, n=Math.max(1,Math.round((V.end-V.start)*fps));
+  let outFile=null;
+  if(canStreamSave() && (V.end-V.start)>=STREAM_SAVE_MIN){
+    try{ const h=await window.showSaveFilePicker({suggestedName:`pocket-retro_${stamp()}.mp4`,types:[{description:"MP4 video",accept:{"video/mp4":[".mp4"]}}]}); outFile={h,w:await h.createWritable()}; }
+    catch(e){ if(e&&e.name==="AbortError"){ $("note").textContent="Render cancelled. Long videos are saved straight to your computer, so choose where to save first."; return; } outFile=null; }
+  }
   rendering=true; cancelReq=false; $("prog").hidden=false; clearResult(); $("note").textContent="";
   $("progTxt").textContent="Getting ready…"; $("progBar").style.width="0%";
   let lock=null; try{ lock=await navigator.wakeLock?.request("screen"); }catch(e){}
@@ -1575,11 +1679,11 @@ async function renderVideo(){
   if(!vcfg){ $("note").textContent=`This device can't encode ${Wo}×${Ho} video. Try fewer scan lines, turn off the CRT look or the border, or use a smaller export size.`; endRender(lock); return; }
   $("progTxt").textContent="Reading the audio…";
   const fx = M==="tape" ? (A.on?A:null) : (C.mic?micParams():null);
-  const aud=await pickAudio();
+  const aud=await pickAudioStream();
   let err=null, thumb=null;
   try{
-    const muxer=new Mp4Muxer.Muxer({ target:new Mp4Muxer.ArrayBufferTarget(), video:{codec:vpick.mux,width:Wo,height:Ho,frameRate:fps},
-      audio: aud.buf ? {codec:aud.mux,sampleRate:aud.buf.sampleRate,numberOfChannels:aud.ch} : undefined, fastStart:"in-memory", firstTimestampBehavior:"offset" });
+    const muxer=new Mp4Muxer.Muxer({ target: outFile?new Mp4Muxer.FileSystemWritableFileStreamTarget(outFile.w):new Mp4Muxer.ArrayBufferTarget(), video:{codec:vpick.mux,width:Wo,height:Ho,frameRate:fps},
+      audio: aud.reader ? {codec:aud.mux,sampleRate:aud.sr,numberOfChannels:aud.ch} : undefined, fastStart: outFile?false:"in-memory", firstTimestampBehavior:"offset" });
     const venc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>{err=e;}}); venc.configure(vcfg);
     const fc=document.createElement("canvas"); fc.width=Wo; fc.height=Ho; const fx2=fc.getContext("2d"), t0=performance.now();
     thumb=await thumbOf(first.canvas);
@@ -1595,20 +1699,27 @@ async function renderVideo(){
     }
     if(err) throw err;
     await venc.flush(); venc.close();
-    if(cancelReq){ $("note").textContent="Render cancelled."; }
+    if(cancelReq){ $("note").textContent="Render cancelled."; if(outFile){ try{ await outFile.w.abort(); }catch(e){} outFile=null; } }
     else {
       let audioNote="";
-      if(aud.buf){ $("progTxt").textContent="Adding the sound…"; await encodeAudioInto(muxer,aud,V.start,n/fps,fx); }
-      else if(aud.why==="no-encoder"){ audioNote=" This browser can't encode sound, so the video is silent."; }
-      else if(aud.why==="no-audio"){ audioNote=" The clip has no sound, or its sound couldn't be read, so the video is silent."; }
+      if(aud.reader){ $("progTxt").textContent="Adding the sound…";
+        await encodeAudioInto(muxer,aud,V.start,n/fps,fx,p=>{ $("progTxt").textContent=`Adding the sound… ${Math.round(p*100)}%`; $("progBar").style.width=(p*100).toFixed(1)+"%"; });
+        if(aud.mux==="opus") audioNote=" The sound is saved as Opus, which plays in Chrome and VLC but not in QuickTime or Photos. Rendering in Safari gives sound that plays everywhere."; }
+      else audioNote=audioWhyNote(aud);
       muxer.finalize();
+      if(outFile){ await outFile.w.close(); const file=await outFile.h.getFile(); outFile=null;
+        result={blob:file,url:URL.createObjectURL(file),ext:"mp4",onDisk:true}; resultKey=keyNow();
+        $("result").src=result.url; $("result").hidden=false;
+        $("note").textContent=`Video saved as ${file.name}: ${n} frames, ${(file.size/1048576).toFixed(1)} MB.${audioNote} Long videos go straight to your computer, so this one isn't added to the roll.`;
+      } else {
       const blob=new Blob([muxer.target.buffer],{type:"video/mp4"});
       result={blob,url:URL.createObjectURL(blob),ext:"mp4"}; resultKey=keyNow();
       $("result").src=result.url; $("result").hidden=false;
       await addToRoll({type:"video",blob,thumb,ext:"mp4"});
       $("note").textContent=`Video ready: ${n} frames, ${(blob.size/1048576).toFixed(1)} MB, and added to your roll.${audioNote} Tap Save video to keep it on your phone.`;
+      }
     }
-  }catch(e){ $("note").textContent="The video couldn't be rendered on this device. Try fewer scan lines, a shorter clip, a lower frame rate or no CRT look."; }
+  }catch(e){ if(outFile){ try{ outFile.w.abort(); }catch(_){} } $("note").textContent="The video couldn't be rendered on this device. Try fewer scan lines, a shorter clip, a lower frame rate or no CRT look."; }
   endRender(lock);
 }
 function endRender(lock){ try{ lock&&lock.release(); }catch(e){} rendering=false; $("prog").hidden=true; $("vfdState").textContent="READY";
@@ -1628,22 +1739,260 @@ function aacChunk(c){ /* drop an ADTS header if an encoder adds one; MP4 wants r
     return new EncodedAudioChunk({type:c.type,timestamp:c.timestamp,duration:c.duration??undefined,data:d.subarray(h)}); }
   return c;
 }
-async function encodeAudioInto(muxer,aud,start,dur,fx){
+async function encodeAudioInto(muxer,aud,start,dur,fx,prog){
   const isAac=aud.mux==="aac", asc=isAac?aacConfig(aud.cfg.sampleRate,aud.cfg.numberOfChannels):null;
   const out=(c,m)=>{ if(isAac){ c=aacChunk(c); if(m&&m.decoderConfig) m={...m,decoderConfig:{...m.decoderConfig,description:asc}}; } muxer.addAudioChunk(c,m); };
   let err=null; const aenc=new AudioEncoder({output:out, error:e=>{err=e;}}); aenc.configure(isAac?{...aud.cfg,aac:{format:"aac"}}:aud.cfg);
-  const sr=aud.buf.sampleRate, CH=aud.ch, chans=[];
-  let s0=Math.floor(start*sr), s1=Math.min(aud.buf.length, s0+Math.round(dur*sr)), ab=aud.buf;
-  if(fx && s1>s0){ $("progTxt").textContent="Processing the sound…"; ab=await processAudio(aud.buf,s0,s1,fx,CH); s0=0; s1=ab.length; }
-  for(let c=0;c<CH;c++) chans.push(ab.getChannelData(c));
-  for(let pos=s0; pos<s1; pos+=4096){
-    const len=Math.min(4096,s1-pos), data=new Float32Array(len*CH);
-    for(let c=0;c<CH;c++) data.set(chans[c].subarray(pos,pos+len), c*len);
-    const ad=new AudioData({format:"f32-planar",sampleRate:sr,numberOfFrames:len,numberOfChannels:CH,timestamp:Math.round((pos-s0)/sr*1e6),data});
-    aenc.encode(ad); ad.close(); while(aenc.encodeQueueSize>8) await sleep(2);
-  }
+  const reader=aud.reader||bufReader(aud.buf,aud.ch), CH=aud.ch, sr=reader.sr; let sent=0;
+  const emit=async(chans,L)=>{ for(let pos=0;pos<L;pos+=4096){ const len=Math.min(4096,L-pos), data=new Float32Array(len*CH);
+      for(let c=0;c<CH;c++) data.set(chans[Math.min(c,chans.length-1)].subarray(pos,pos+len), c*len);
+      const ad=new AudioData({format:"f32-planar",sampleRate:sr,numberOfFrames:len,numberOfChannels:CH,timestamp:Math.round(sent/sr*1e6),data});
+      sent+=len; aenc.encode(ad); ad.close(); while(aenc.encodeQueueSize>8) await sleep(2); if(err) throw err; } };
+  if(fx) await processChunked(reader,start,dur,fx,CH,emit,prog);
+  else { const total=Math.round(dur*sr), step=30*sr;
+    for(let s0=0;s0<total;s0+=step){ const L=Math.min(step,total-s0); await emit(await reader.read(start+s0/sr,start+(s0+L)/sr),L); if(prog) prog((s0+L)/total); } }
   await aenc.flush(); aenc.close(); if(err) throw err;
 }
+
+/* ================= 1.5.1: streamed sound for long and large clips =================
+   A "reader" hands out the clip's sound a piece at a time: read(a,b) gives exactly round((b-a)*sr) samples per channel
+   for source seconds a..b (silence outside the clip). MP4/MOV files are read straight from disk with only the sound
+   samples fetched and decoded, so a multi-gigabyte 4K file never has to fit in memory. Other files fall back to the
+   browser's whole-file decoder when they are small enough. */
+const DECODE_ALL_LIMIT=700*1048576;
+function bufReader(ab,CH){
+  const sr=ab.sampleRate, n=ab.numberOfChannels, ch=CH||Math.min(2,n);
+  return { sr, ch, async read(a,b){ const L=Math.max(0,Math.round((b-a)*sr)), s=Math.round(a*sr), out=[];
+    for(let c=0;c<ch;c++){ const o=new Float32Array(L), src=ab.getChannelData(Math.min(c,n-1)), i0=Math.max(0,-s), i1=Math.min(L,src.length-s);
+      if(i1>i0) o.set(src.subarray(s+i0,s+i1),i0); out.push(o); } return out; } };
+}
+async function fileBytes(f,a,b){ return new Uint8Array(await f.slice(a,b).arrayBuffer()); }
+function mp4Kids(u8,s,e){ const dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength), out=[]; let p=s;
+  while(p+8<=e){ let sz=dv.getUint32(p), hl=8; const type=String.fromCharCode(u8[p+4],u8[p+5],u8[p+6],u8[p+7]);
+    if(sz===1){ sz=Number(dv.getBigUint64(p+8)); hl=16; } else if(sz===0) sz=e-p;
+    if(sz<hl||p+sz>e) break; out.push({type,s:p+hl,e:p+sz}); p+=sz; }
+  return out; }
+const mp4Kid=(u8,b,t)=>b&&mp4Kids(u8,b.s,b.e).find(k=>k.type===t);
+async function mp4AudioReader(file){
+  // 1. find the moov box at the top level (it can be at the start or the end of the file)
+  let off=0, moov=null; const size=file.size;
+  for(let guard=0; off+8<=size && guard<4000; guard++){
+    const h=await fileBytes(file,off,Math.min(size,off+16)), dv=new DataView(h.buffer);
+    let sz=dv.getUint32(0), hl=8; const type=String.fromCharCode(h[4],h[5],h[6],h[7]);
+    if(guard===0 && type!=="ftyp" && type!=="wide" && type!=="mdat" && type!=="moov" && type!=="free" && type!=="skip") return {why:"not-mp4"};
+    if(sz===1){ sz=Number(dv.getBigUint64(8)); hl=16; } else if(sz===0) sz=size-off;
+    if(sz<hl) break;
+    if(type==="moov"){ if(sz>256*1048576) return {why:"not-mp4"}; moov=await fileBytes(file,off,off+sz); moov={u8:moov,box:{s:hl,e:sz}}; break; }
+    off+=sz;
+  }
+  if(!moov) return {why:"not-mp4"};
+  const u8=moov.u8, dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);
+  const mvhd=mp4Kid(u8,moov.box,"mvhd"); const movieTs=mvhd?(u8[mvhd.s]===1?dv.getUint32(mvhd.s+20):dv.getUint32(mvhd.s+12)):1000;
+  for(const trak of mp4Kids(u8,moov.box.s,moov.box.e).filter(k=>k.type==="trak")){
+    const mdia=mp4Kid(u8,trak,"mdia"), hdlr=mp4Kid(u8,mdia,"hdlr"); if(!hdlr) continue;
+    if(String.fromCharCode(u8[hdlr.s+8],u8[hdlr.s+9],u8[hdlr.s+10],u8[hdlr.s+11])!=="soun") continue;
+    const mdhd=mp4Kid(u8,mdia,"mdhd"), ts=u8[mdhd.s]===1?dv.getUint32(mdhd.s+20):dv.getUint32(mdhd.s+12);
+    const stbl=mp4Kid(u8,mp4Kid(u8,mdia,"minf"),"stbl"), stsd=mp4Kid(u8,stbl,"stsd"); if(!stsd) continue;
+    // sample description: AAC ("mp4a") with its esds, possibly inside a QuickTime "wave" box
+    const E=stsd.s+8, fmt=String.fromCharCode(u8[E+4],u8[E+5],u8[E+6],u8[E+7]);
+    if(fmt!=="mp4a") return {why:"codec",fmt};
+    const ver=dv.getUint16(E+16), entCh=dv.getUint16(E+24), entSr=dv.getUint16(E+32), entEnd=E+dv.getUint32(E);
+    let kidsAt=E+36+(ver===1?16:ver===2?36:0), esds=null;
+    const look=(s,e,d)=>{ for(const k of mp4Kids(u8,s,e)){ if(k.type==="esds") return k; if(k.type==="wave"&&d<3){ const r=look(k.s,k.e,d+1); if(r) return r; } } return null; };
+    esds=look(kidsAt,entEnd,0);
+    if(!esds){ for(let p=E+8;p<entEnd-4;p++) if(u8[p]===0x65&&u8[p+1]===0x73&&u8[p+2]===0x64&&u8[p+3]===0x73){ esds={s:p+4,e:p-4+dv.getUint32(p-4)}; break; } }
+    if(!esds) return {why:"codec",fmt};
+    let q=esds.s+4, oti=0, asc=null;
+    const desc=()=>{ const tag=u8[q++]; let len=0; for(let i=0;i<4;i++){ const b=u8[q++]; len=(len<<7)|(b&0x7f); if(!(b&0x80)) break; } return {tag,len}; };
+    let d=desc(); if(d.tag===3){ q+=2; const f=u8[q++]; if(f&0x80) q+=2; if(f&0x40) q+=1+u8[q]; if(f&0x20) q+=2; d=desc(); }
+    if(d.tag===4){ oti=u8[q]; q+=13; d=desc(); if(d.tag===5) asc=u8.slice(q,q+d.len); }
+    let codec;
+    if(oti===0x6B||oti===0x69) codec="mp3";
+    else if(oti===0x40||oti===0x66||oti===0x67||oti===0x68){ if(!asc) return {why:"codec",fmt}; let aot=asc[0]>>3; if(aot===31) aot=32+(((asc[0]&7)<<3)|(asc[1]>>5)); codec="mp4a.40."+aot; }
+    else return {why:"codec",fmt};
+    // sample tables -> per-sample file offset, size and presentation time
+    const tbl=t=>mp4Kid(u8,stbl,t);
+    const stts=tbl("stts"), stsc=tbl("stsc"), stsz=tbl("stsz"), stco=tbl("stco"), co64=tbl("co64");
+    if(!stts||!stsc||!stsz||!(stco||co64)) return {why:"codec",fmt};
+    const fixed=dv.getUint32(stsz.s+4), count=dv.getUint32(stsz.s+8);
+    const sizes=new Uint32Array(count); for(let i=0;i<count;i++) sizes[i]=fixed||dv.getUint32(stsz.s+12+i*4);
+    const nChunks=stco?dv.getUint32(stco.s+4):dv.getUint32(co64.s+4), chunkOff=new Float64Array(nChunks);
+    for(let i=0;i<nChunks;i++) chunkOff[i]=stco?dv.getUint32(stco.s+8+i*4):Number(dv.getBigUint64(co64.s+8+i*8));
+    const offs=new Float64Array(count), nsc=dv.getUint32(stsc.s+4); let si=0;
+    for(let k=0;k<nsc;k++){ const first=dv.getUint32(stsc.s+8+k*12)-1, per=dv.getUint32(stsc.s+12+k*12), last=k+1<nsc?dv.getUint32(stsc.s+8+(k+1)*12)-1:nChunks;
+      for(let c=first;c<last&&si<count;c++){ let o=chunkOff[c]; for(let j=0;j<per&&si<count;j++){ offs[si]=o; o+=sizes[si]; si++; } } }
+    // edit list: an empty edit delays the track; a media_time skips encoder priming
+    let shift=0, mediaStart=0; const elst=mp4Kid(u8,mp4Kid(u8,trak,"edts"),"elst");
+    if(elst){ const v=u8[elst.s], n=dv.getUint32(elst.s+4); let p=elst.s+8;
+      for(let k=0;k<n;k++){ const segDur=v===1?Number(dv.getBigUint64(p)):dv.getUint32(p), mt=v===1?Number(dv.getBigInt64(p+8)):dv.getInt32(p+4); p+=v===1?20:12;
+        if(mt===-1) shift+=segDur/movieTs; else { mediaStart=mt/ts; break; } } }
+    const pts=new Float64Array(count), durs=new Float64Array(count), ne=dv.getUint32(stts.s+4); let t=0, k2=0;
+    for(let k=0;k<ne;k++){ const cnt=dv.getUint32(stts.s+8+k*8), dl=dv.getUint32(stts.s+12+k*8); for(let j=0;j<cnt&&k2<count;j++){ pts[k2]=t/ts-mediaStart+shift; durs[k2]=dl/ts; t+=dl; k2++; } }
+    if(!count) return {why:"no-audio"};
+    // find the decoded sample rate and channel count (HE-AAC doubles the rate) by decoding the first few frames
+    if(typeof AudioDecoder!=="function") return {why:"no-decoder"};
+    const cfg={codec,sampleRate:entSr||48000,numberOfChannels:entCh||2}; if(asc&&codec.startsWith("mp4a")) cfg.description=asc;
+    try{ const ok=await AudioDecoder.isConfigSupported(cfg); if(!ok.supported) return {why:"codec",fmt:codec}; }catch(e){ return {why:"codec",fmt:codec}; }
+    const decodeRange=async(i0,i1,onData)=>{
+      let err=null; const dec=new AudioDecoder({output:ad=>{ try{ onData(ad); }finally{ ad.close(); } }, error:e=>{err=e;}}); dec.configure(cfg);
+      // fetch contiguous runs of sound samples (they sit in chunks between the video data)
+      const runs=[]; for(let i=i0;i<=i1;i++){ const r=runs[runs.length-1]; if(r&&offs[i]===r.end){ r.end+=sizes[i]; r.last=i; } else runs.push({start:offs[i],end:offs[i]+sizes[i],first:i,last:i}); }
+      for(let g=0; g<runs.length; g+=16){ const grp=runs.slice(g,g+16), datas=await Promise.all(grp.map(r=>fileBytes(file,r.start,r.end)));
+        grp.forEach((r,gi)=>{ const b=datas[gi]; for(let i=r.first;i<=r.last;i++){ const o=offs[i]-r.start;
+          dec.decode(new EncodedAudioChunk({type:"key",timestamp:Math.round(pts[i]*1e6),duration:Math.round(durs[i]*1e6),data:b.subarray(o,o+sizes[i])})); } });
+        while(dec.decodeQueueSize>64) await sleep(2); if(err) break; }
+      await dec.flush().catch(e=>{ err=err||e; }); try{ dec.close(); }catch(e){}
+      if(err) throw err;
+    };
+    let sr=0, srcCh=0; await decodeRange(0,Math.min(count-1,3),ad=>{ if(!sr){ sr=ad.sampleRate; srcCh=ad.numberOfChannels; } });
+    if(!sr) return {why:"codec",fmt:codec};
+    const ch=Math.min(2,srcCh);
+    const findFirst=x=>{ let lo=0, hi=count-1; while(lo<hi){ const m=(lo+hi)>>1; if(pts[m]+durs[m]<x) lo=m+1; else hi=m; } return lo; };
+    return { reader:{ sr, ch, duration:pts[count-1]+durs[count-1], async read(a,b){
+      const L=Math.max(0,Math.round((b-a)*sr)), out=[]; for(let c=0;c<ch;c++) out.push(new Float32Array(L));
+      if(L===0 || b<=0 || a>=pts[count-1]+durs[count-1]) return out;
+      const i0=Math.max(0,findFirst(a)-3), i1=Math.min(count-1,findFirst(b)+1), tmp={};
+      await decodeRange(i0,i1,ad=>{
+        const at=Math.round((ad.timestamp/1e6-a)*sr), nf=ad.numberOfFrames; if(at>=L||at+nf<=0) return;
+        for(let c=0;c<ch;c++){ const pl=Math.min(c,ad.numberOfChannels-1); let buf=tmp[nf]; if(!buf) buf=tmp[nf]=new Float32Array(nf);
+          ad.copyTo(buf,{planeIndex:pl,format:"f32-planar"});
+          const j0=Math.max(0,-at), j1=Math.min(nf,L-at); out[c].set(buf.subarray(j0,j1),at+j0); } });
+      return out; } } };
+  }
+  return {why:"no-audio"};
+}
+/* pick the best way to read this clip's sound */
+async function openAudioReader(file){
+  if(!file) return {why:"no-audio"};
+  let r={why:"not-mp4"};
+  try{ r=await mp4AudioReader(file); }catch(e){ r={why:"not-mp4"}; }
+  if(r.reader) return r;
+  if(r.why==="no-audio") return r;
+  if(file.size>DECODE_ALL_LIMIT) return {why:r.why==="codec"?"codec":"too-big",fmt:r.fmt};
+  const buf=await getDecoded(); if(buf) return {reader:bufReader(buf,Math.min(2,buf.numberOfChannels))};
+  return {why:r.why==="codec"?"codec":"no-audio",fmt:r.fmt};
+}
+async function pickAudioStream(){
+  if(typeof AudioEncoder!=="function" || typeof AudioData!=="function") return {why:"no-encoder"};
+  const o=await openAudioReader(mediaFile); if(!o.reader) return {why:o.why||"no-audio",fmt:o.fmt};
+  const rd=o.reader;
+  for(const [mux,codec] of [["aac","mp4a.40.2"],["opus","opus"]]){
+    const cfg={codec,sampleRate:rd.sr,numberOfChannels:rd.ch,bitrate:160000};
+    try{ const r=await AudioEncoder.isConfigSupported(cfg); if(r.supported) return {reader:rd,cfg,mux,ch:rd.ch,sr:rd.sr}; }catch(e){}
+  }
+  return {why:"no-encoder"};
+}
+function audioWhyNote(aud){
+  if(aud.why==="no-encoder") return " This browser can't encode sound, so the video is silent.";
+  if(aud.why==="too-big") return " This clip is too big to read its sound in its format, so the video is silent. Save it as an MP4 or MOV and try again.";
+  if(aud.why==="codec") return " This clip's sound format can't be read by this browser (it may be Dolby or another special format), so the video is silent.";
+  if(aud.why==="no-decoder") return " This browser can't read the sound from a clip this big, so the video is silent. Try Chrome or Safari.";
+  if(aud.why==="no-audio") return " The clip has no sound, or its sound couldn't be read, so the video is silent.";
+  return "";
+}
+
+/* ---- the VHS sound chain, run in 60-second chunks with seamless joins ---- */
+function hash11(seed,k){ let t=(Math.imul(k|0,0x9E3779B1)^Math.imul(seed|0,0x85EBCA6B))>>>0; t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return (((t^(t>>>14))>>>0)/4294967296)*2-1; }
+function noiseAt(seed,x){ const k=Math.floor(x), f=x-k, s=f*f*(3-2*f), a=hash11(seed,k), b=hash11(seed,k+1); return a+(b-a)*s; }
+function audioPlan(A,dur,seed){
+  const rng=mulberry(1234+seed), ph1=rng()*6.28, ph2=rng()*6.28, drops=[], clicks=[];
+  if(A.dropouts>0){ const rate=A.dropouts*0.7; let t=rng()*2/Math.max(rate,0.01);
+    while(t<dur){ const l=0.03+rng()*0.14, depth=0.5+rng()*0.45; drops.push([t,l,depth]); t+=l+(-Math.log(1-rng()))/Math.max(rate,0.01); } }
+  if(A.clicks>0){ const rate=A.clicks*2.5, cr=mulberry(99+seed); let t=cr()/rate;
+    while(t<dur){ const amp=(0.05+cr()*0.2)*(cr()<0.5?-1:1), l=0.0006+cr()*0.002; clicks.push([t,amp,l]); t+=(-Math.log(1-cr()))/rate; } }
+  return {ph1,ph2,drops,clicks,seed};
+}
+/* render one stretch: output samples [sA, sA+L) of the trimmed clip (sample 0 = the Start point), warmed up on 1 s of earlier sound */
+async function renderChunk(reader,t0,sA,L,A,CH,plan){
+  const sr=reader.sr, P=Math.round(1.0*sr), D=Math.round(0.01*sr), total=P+L+D, cdur=total/sr, base=(sA-P)/sr;
+  const inp=await reader.read(t0+base, t0+base+(P+L)/sr);
+  const oc=new OfflineAudioContext(CH,total,sr);
+  const ib=oc.createBuffer(CH,P+L,sr); for(let c=0;c<CH;c++) ib.copyToChannel(inp[Math.min(c,inp.length-1)].subarray(0,P+L),c);
+  const srcN=oc.createBufferSource(); srcN.buffer=ib;
+  const out=oc.createGain(); out.gain.value=1;
+  const limiter=oc.createDynamicsCompressor(); limiter.threshold.value=-1; limiter.knee.value=0; limiter.ratio.value=20; limiter.attack.value=0.002; limiter.release.value=0.08;
+  out.connect(limiter).connect(oc.destination);
+  const dryD=oc.createDelay(1); dryD.delayTime.value=D/sr; const dry=oc.createGain(); dry.gain.value=1-A.mix; srcN.connect(dryD).connect(dry).connect(out);
+  // wow & flutter follow the clip's own clock, so neighbouring chunks line up exactly
+  const d=oc.createDelay(1), cr=200, N=Math.max(2,Math.ceil(cdur*cr)), curve=new Float32Array(N);
+  for(let i=0;i<N;i++){ const t=base+i/cr;
+    const wow=A.wow*0.0042*(0.6*Math.sin(2*Math.PI*0.5*t+plan.ph1)+0.4*noiseAt(plan.seed+11,t*0.35));
+    const flut=A.flutter*0.00055*(Math.sin(2*Math.PI*7.3*t+plan.ph2)*0.7+noiseAt(plan.seed+22,t*3)*0.3);
+    curve[i]=D/sr+wow+flut; }
+  d.delayTime.setValueCurveAtTime(curve,0,cdur);
+  const hp=oc.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=A.lowCut; hp.Q.value=0.707;
+  const warm=oc.createBiquadFilter(); warm.type="lowshelf"; warm.frequency.value=220; warm.gain.value=A.warmth*7;
+  const lp1=oc.createBiquadFilter(); lp1.type="lowpass"; lp1.frequency.value=A.highCut; lp1.Q.value=0.6;
+  const lp2=oc.createBiquadFilter(); lp2.type="lowpass"; lp2.frequency.value=A.highCut*1.15; lp2.Q.value=0.9;
+  const sh=oc.createWaveShaper(), drv=1+A.drive*4, sc=new Float32Array(4096);
+  for(let i=0;i<4096;i++){ const x=(i/2047.5-1)*4; sc[i]=Math.tanh(x); } sh.curve=sc; sh.oversample="2x";
+  const pre_g=oc.createGain(); pre_g.gain.value=drv/4;
+  const post_g=oc.createGain(); post_g.gain.value=1/drv;
+  const comp=oc.createDynamicsCompressor(); comp.threshold.value=-8-A.comp*30; comp.ratio.value=1+A.comp*7; comp.knee.value=12; comp.attack.value=0.006; comp.release.value=0.18;
+  const makeup=oc.createGain(); makeup.gain.value=1+A.comp*0.5;
+  const drop=oc.createGain(), DR=500, DN=Math.max(2,Math.ceil(cdur*DR)), dc=new Float32Array(DN).fill(1);
+  for(const [ts,l,depth] of plan.drops){ if(ts+l<base||ts>base+cdur) continue;
+    const a=Math.floor((ts-base)*DR), b=Math.min(DN,Math.floor((ts+l-base)*DR));
+    for(let i=Math.max(0,a);i<b;i++){ const x=(i-a)/Math.max(1,b-a), env=Math.sin(Math.PI*x); dc[i]=Math.min(dc[i],1-depth*env); } }
+  drop.gain.setValueCurveAtTime(dc,0,cdur);
+  const wet=oc.createGain(); wet.gain.value=A.mix;
+  srcN.connect(d).connect(hp).connect(warm).connect(lp1).connect(lp2).connect(pre_g).connect(sh).connect(post_g).connect(comp).connect(makeup);
+  let tail=makeup;
+  if(CH===2){
+    const sp=oc.createChannelSplitter(2), mg=oc.createChannelMerger(2), w=A.width, a1=0.5+0.5*w, a2=0.5-0.5*w;
+    const g=[a1,a2,a2,a1].map(v=>{ const n=oc.createGain(); n.gain.value=v; return n; });
+    tail.connect(sp); sp.connect(g[0],0); sp.connect(g[1],1); sp.connect(g[2],0); sp.connect(g[3],1);
+    g[0].connect(mg,0,0); g[1].connect(mg,0,0); g[2].connect(mg,0,1); g[3].connect(mg,0,1); tail=mg;
+    if(A.drift>0 && oc.createStereoPanner){ const pn=oc.createStereoPanner(), PN=Math.max(2,Math.ceil(cdur*50)), pc=new Float32Array(PN);
+      for(let i=0;i<PN;i++) pc[i]=noiseAt(plan.seed+33,(base+i/50)*0.15)*A.drift*0.6;
+      pn.pan.setValueCurveAtTime(pc,0,cdur); tail.connect(pn); tail=pn; }
+  }
+  tail.connect(drop).connect(wet).connect(out);
+  srcN.start(0);
+  const res=await oc.startRendering(), outs=[], ins=[];
+  for(let c=0;c<CH;c++){ outs.push(res.getChannelData(c).subarray(P+D,P+D+L)); ins.push(inp[Math.min(c,inp.length-1)].subarray(P,P+L)); }
+  return {out:outs,inp:ins};
+}
+async function processChunked(reader,t0,dur,A,CH,emit,prog){
+  const sr=reader.sr, total=Math.round(dur*sr), CS=60*sr, XF=Math.round(0.03*sr), seed=(S.seed>>>0), plan=audioPlan(A,dur,seed);
+  if(total<=0) return;
+  // loudness: measured on the whole clip when short, or on six spread-out samples when long
+  const wins = dur<=150 ? [[0,total]] : Array.from({length:6},(_,k)=>{ const len=Math.min(total,15*sr); return [Math.round((total-len)*k/5),len]; });
+  let si=0, so=0, n=0;
+  for(const [s,len] of wins){ const r=await renderChunk(reader,t0,s,len,A,CH,plan);
+    for(let c=0;c<CH;c++){ const a=r.inp[c], b=r.out[c]; for(let i=0;i<len;i+=4){ si+=a[i]*a[i]; so+=b[i]*b[i]; n++; } } }
+  const inR=Math.sqrt(si/Math.max(1,n)), outR=Math.sqrt(so/Math.max(1,n));
+  const gain=(inR>1e-5 && outR>1e-5 ? Math.max(0.25,Math.min(4,inR/outR)) : 1)*A.vol;
+  const hissAmp=A.hiss*0.035*Math.max(0.12,Math.min(1.2,inR/0.1))*A.vol, clickK=Math.max(0.3,Math.min(1.5,inR/0.1));
+  const hpA=Math.exp(-2*Math.PI*900/sr), lpA=Math.exp(-2*Math.PI*Math.min(16000,A.highCut*1.2)/sr);
+  const hs=[]; for(let c=0;c<CH;c++) hs.push({b0:0,b1:0,b2:0,hpX:0,hpY:0,lpY:0,rng:mulberry(4321+seed+c*7919)});
+  const hums=A.hum>0?[[1,1],[2,0.5],[3,0.3]].map(([h,amp])=>[2*Math.PI*A.humHz*h/sr, A.hum*0.025*amp*gain]):[];
+  let prev=null;
+  for(let sA=0; sA<total; sA+=CS){
+    if(typeof cancelReq!=="undefined" && cancelReq) return;
+    const L=Math.min(CS,total-sA), post=sA+L>=total?0:XF;
+    const r=await renderChunk(reader,t0,sA,L+post,A,CH,plan);
+    const outs=r.out.map(a=>{ const o=new Float32Array(L+post); for(let i=0;i<L+post;i++) o[i]=a[i]*gain; return o; });
+    if(prev) for(let c=0;c<CH;c++) for(let i=0;i<XF;i++){ const w=(i+0.5)/XF; outs[c][i]=prev[c][i]*(1-w)+outs[c][i]*w; }
+    prev=post?outs.map(o=>o.slice(L,L+post)):null;
+    for(let c=0;c<CH;c++){ const o=outs[c], H=hs[c];
+      for(const [wv,amp] of hums) for(let i=0;i<L;i++) o[i]+=amp*Math.sin(wv*(sA+i));
+      if(hissAmp>0) for(let i=0;i<L;i++){ const wv=H.rng()*2-1; H.b0=0.99765*H.b0+wv*0.099046; H.b1=0.963*H.b1+wv*0.2965164; H.b2=0.57*H.b2+wv*1.0526913;
+        const pink=(H.b0+H.b1+H.b2+wv*0.1848)*0.2; H.hpY=hpA*(H.hpY+pink-H.hpX); H.hpX=pink; H.lpY=(1-lpA)*H.hpY+lpA*H.lpY; o[i]+=H.lpY*hissAmp*4; }
+      for(const [ts,amp,l] of plan.clicks){ const i0=Math.round(ts*sr)-sA, Lc=Math.floor(sr*l); if(i0>=L||i0+Lc<0) continue;
+        for(let k=Math.max(0,-i0);k<Lc&&i0+k<L;k++) o[i0+k]+=amp*clickK*Math.exp(-k/(Lc*0.25))*(c===0?1:0.85); }
+      for(let i=0;i<L;i++){ const v=o[i]; o[i]=v>0.9?0.9+0.1*Math.tanh((v-0.9)/0.1):v<-0.9?-0.9-0.1*Math.tanh((-v-0.9)/0.1):v; }
+    }
+    await emit(outs.map(o=>o.subarray(0,L)),L);
+    if(prog) prog(Math.min(1,(sA+L)/total));
+  }
+}
+
+/* ---- 1.5.1: long renders on a computer can be written straight to a file as they go ---- */
+const STREAM_SAVE_MIN=90; // seconds
+function canStreamSave(){ try{ return typeof window.showSaveFilePicker==="function" && !window.claude && window.self===window.top; }catch(e){ return false; } }
+
+if(/[?&]test\b/.test(location.search)) window.__pr={openAudioReader,processChunked,bufReader,get A(){ return A; },get mediaFile(){ return mediaFile; },set(k,v){ if(k==="V") Object.assign(V,v); if(k==="P") Object.assign(P,v); if(k==="A") Object.assign(A,v); }};
 
 /* ================= render sound only ================= */
 function wavBlob(ab){
@@ -1895,6 +2244,103 @@ $("vwEdit").onclick=async()=>{ if(!viewing||!viewing.src) return; const it=viewi
 $("vwDel").onclick=()=>{ $("vwConfirm").hidden=false; };
 $("vwNo").onclick=()=>{ $("vwConfirm").hidden=true; };
 $("vwYes").onclick=()=>{ const it=viewing; if(!it) return; URL.revokeObjectURL(it.thumbUrl); dbDel(it.id); roll=roll.filter(r=>r!==it); if(curItem===it) curItem=null; closeViewer(); renderRoll(); };
+
+
+/* ================= backup and restore (one ZIP: backup.json + the roll's files) ================= */
+function bkNote(t){ $("bkNote").textContent=t; }
+const MIME_EXT={"image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/heic":"heic","image/gif":"gif","video/mp4":"mp4","video/quicktime":"mov","video/webm":"webm","audio/mp4":"m4a","audio/mpeg":"mp3","audio/wav":"wav","audio/x-wav":"wav","application/zip":"zip"};
+const extOf=(b,def)=>MIME_EXT[(b&&b.type)||""]||def||"bin";
+async function makeBackup(){
+  const d=await getDownloads(); if(!d){ bkNote("Saving isn't available here."); return; }
+  try{ localStorage.setItem("pretro",JSON.stringify({M,S,P,A,C,preset:presetId,tabT,tabC,lookId})); }catch(e){}
+  $("bkSave").disabled=true; bkNote("Packing your backup…");
+  try{
+    const files=[], items=[], srcMap=new Map();
+    for(const it of roll){
+      const e={id:it.id,mode:it.mode,time:it.time,type:it.type,ext:it.ext,num:it.num,name:it.name,srcFile:it.srcFile};
+      if(it.blob){ e.blob={path:`roll/${it.id}.${it.ext||extOf(it.blob)}`,type:it.blob.type||""}; files.push({name:e.blob.path,blob:it.blob}); }
+      if(it.thumb){ e.thumb={path:`roll/${it.id}-thumb.jpg`,type:it.thumb.type||"image/jpeg"}; files.push({name:e.thumb.path,blob:it.thumb}); }
+      if(it.src){ let p=srcMap.get(it.src);
+        if(!p){ p=`originals/${srcMap.size+1}.${extOf(it.src,((it.src.name||"").split(".").pop()||"bin").toLowerCase())}`; srcMap.set(it.src,p); files.push({name:p,blob:it.src}); }
+        e.src={path:p,type:it.src.type||"",name:it.src.name||""}; }
+      items.push(e);
+    }
+    let settings=null; try{ settings=localStorage.getItem("pretro"); }catch(e){}
+    const man={app:"pocket-retro",backup:1,made:new Date().toISOString(),settings,looks:LOOKS,imports:IMPORTED,logo:LOGO.url,roll:items};
+    files.unshift({name:"backup.json",blob:new Blob([JSON.stringify(man)],{type:"application/json"})});
+    const z=await makeZip(files);
+    await d.save({filename:`pocket-retro_backup_${stamp(new Date())}.zip`,data:z});
+    const n=roll.length, l=LOOKS.length;
+    bkNote(`Backup saved (${(z.size/1048576).toFixed(1)} MB): ${n} roll item${n===1?"":"s"}, ${l} look${l===1?"":"s"}, your settings${LOGO.url?" and your logo":""}. On iPhone, choose Save to Files.`);
+  }catch(e){ bkNote(e&&e.code==="declined"?"Backup not saved.":e&&e.code==="too_large"?"Your roll is too big for one backup here. Save your videos, delete some from the roll, then try again.":"The backup couldn't be saved on this device."); }
+  $("bkSave").disabled=false;
+}
+function readZip(buf){
+  const u8=new Uint8Array(buf), v=new DataView(buf); let e=-1;
+  for(let i=u8.length-22;i>=Math.max(0,u8.length-65557);i--) if(v.getUint32(i,true)===0x06054b50){ e=i; break; }
+  if(e<0) throw new Error("not a zip");
+  const n=v.getUint16(e+10,true), out=new Map(), dec=new TextDecoder(); let p=v.getUint32(e+16,true);
+  for(let k=0;k<n;k++){
+    if(v.getUint32(p,true)!==0x02014b50) throw new Error("bad zip");
+    const meth=v.getUint16(p+10,true), csz=v.getUint32(p+20,true), nl=v.getUint16(p+28,true), xl=v.getUint16(p+30,true), cl=v.getUint16(p+32,true), lo=v.getUint32(p+42,true);
+    const name=dec.decode(u8.subarray(p+46,p+46+nl)); p+=46+nl+xl+cl;
+    const ds=lo+30+v.getUint16(lo+26,true)+v.getUint16(lo+28,true);
+    out.set(name,{meth,data:u8.subarray(ds,ds+csz)});
+  }
+  return out;
+}
+async function zipEntry(z,name,type){ const e=z.get(name); if(!e) return null;
+  if(e.meth===0) return new Blob([e.data],{type:type||""});
+  if(e.meth===8 && typeof DecompressionStream==="function"){ const ab=await new Response(new Blob([e.data]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer(); return new Blob([ab],{type:type||""}); }
+  throw new Error("unsupported zip"); }
+let bkFile=null;
+async function restoreBackup(f){
+  bkNote("Reading the backup…"); $("bkLoad").disabled=true;
+  try{
+    const z=readZip(await f.arrayBuffer());
+    const key=[...z.keys()].find(k=>/(^|\/)backup\.json$/.test(k)&&!k.startsWith("__MACOSX")); if(!key) throw new Error("no manifest");
+    const pre=key.slice(0,key.length-"backup.json".length);
+    const man=JSON.parse(await (await zipEntry(z,key,"application/json")).text()); if(!man||man.app!=="pocket-retro") throw new Error("not ours");
+    const have=new Set(roll.map(r=>r.id)), srcCache=new Map(), db=await idb(); let added=0, skipped=0;
+    for(const e of man.roll||[]){
+      if(have.has(e.id)){ skipped++; continue; }
+      const it={id:e.id,mode:e.mode,time:e.time,type:e.type,ext:e.ext,num:e.num,name:e.name,srcFile:e.srcFile};
+      if(e.blob) it.blob=await zipEntry(z,pre+e.blob.path,e.blob.type);
+      if(e.thumb) it.thumb=await zipEntry(z,pre+e.thumb.path,e.thumb.type);
+      if(e.src){ let s=srcCache.get(e.src.path);
+        if(s===undefined){ const b=await zipEntry(z,pre+e.src.path,e.src.type); s=b?new File([b],e.src.name||("original."+e.src.path.split(".").pop()),{type:e.src.type||""}):null; srcCache.set(e.src.path,s); }
+        if(s) it.src=s; }
+      if(!it.blob) continue;
+      for(const k of Object.keys(it)) if(it[k]===undefined||it[k]===null) delete it[k];
+      if(db) await new Promise(res=>{ try{ const tx=db.transaction("roll","readwrite"); tx.objectStore("roll").put(it); tx.oncomplete=res; tx.onerror=res; tx.onabort=res; }catch(err){ res(); } });
+      added++;
+    }
+    const lids=new Set(LOOKS.map(l=>l.id)); let looks=0;
+    for(const l of man.looks||[]) if(l&&l.id&&l.data&&!lids.has(l.id)){ LOOKS.push(l); looks++; }
+    saveLooks();
+    const pids=new Set(IMPORTED.map(p=>p.id)); for(const p of man.imports||[]) if(p&&p.id&&p.j&&!pids.has(p.id)) IMPORTED.push(p);
+    saveImports();
+    try{ if(man.settings) localStorage.setItem("pretro",man.settings); }catch(e){}
+    try{ if(man.logo) localStorage.setItem("pretro-logo",man.logo); else localStorage.removeItem("pretro-logo"); }catch(e){}
+    bkNote(`Restored ${added} roll item${added===1?"":"s"}${skipped?` (${skipped} already here)`:""} and ${looks} look${looks===1?"":"s"}. Reloading…`);
+    setTimeout(()=>location.reload(),1200);
+  }catch(e){ bkNote("That file isn't a Pocket Retro backup, or it couldn't be read."); $("bkLoad").disabled=false; }
+}
+$("bkSave").onclick=makeBackup;
+$("bkLoad").onclick=()=>{ $("bkConfirm").hidden=true; $("inBackup").click(); };
+$("inBackup").onchange=()=>{ const f=$("inBackup").files&&$("inBackup").files[0]; $("inBackup").value=""; if(!f) return; bkFile=f; $("bkName").textContent=f.name; $("bkConfirm").hidden=false; bkNote(""); };
+$("bkNo").onclick=()=>{ bkFile=null; $("bkConfirm").hidden=true; };
+$("bkYes").onclick=()=>{ $("bkConfirm").hidden=true; if(bkFile) restoreBackup(bkFile); bkFile=null; };
+
+/* ================= light / dark ================= */
+const ICON_SUN='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>';
+const ICON_MOON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>';
+function syncTheme(){ const light=document.documentElement.dataset.theme==="light", b=$("themeBtn"), t=light?"Switch to dark mode":"Switch to light mode";
+  b.innerHTML=light?ICON_MOON:ICON_SUN; b.setAttribute("aria-label",t); b.title=t; b.setAttribute("aria-pressed",String(light)); }
+$("themeBtn").onclick=()=>{ const light=document.documentElement.dataset.theme!=="light";
+  if(light) document.documentElement.dataset.theme="light"; else delete document.documentElement.dataset.theme;
+  try{ localStorage.setItem("pretro-theme",light?"light":"dark"); }catch(e){} syncTheme(); };
+syncTheme();
 
 /* ================= My looks (complete presets) ================= */
 let LOOKS=[]; try{ LOOKS=JSON.parse(localStorage.getItem("pretro-looks")||"[]").filter(l=>l&&l.id&&l.data); }catch(e){}
@@ -2282,7 +2728,7 @@ $("resetNo").onclick=()=>{ $("resetConfirm").hidden=true; $("resetAll").setAttri
 $("resetYes").onclick=()=>{
   const wipe=$("resetWipe").checked, media=$("resetMedia").checked;
   if(M==="tape"){ S=presetSettings(PRESETS[0]); P=clone(PDEF); A=adefaults(); presetId="lp"; tabT="signal"; stopPreview(); }
-  else { C=cdefaults(); const keep={osd:P.osd,rating:P.rating,ratingPos:P.ratingPos,ratingOpacity:P.ratingOpacity,ratingSize:P.ratingSize,ratingTime:P.ratingTime,crt:P.crt,aspect:P.aspect,lines:P.lines};
+  else { C=cdefaults(); const keep={osd:P.osd,rating:P.rating,ratingPos:P.ratingPos,ratingOpacity:P.ratingOpacity,ratingSize:P.ratingSize,ratingTime:P.ratingTime,logoOn:P.logoOn,logoPos:P.logoPos,logoX:P.logoX,logoY:P.logoY,logoSize:P.logoSize,logoOpacity:P.logoOpacity,logoWhite:P.logoWhite,logoTime:P.logoTime,crt:P.crt,aspect:P.aspect,lines:P.lines};
     P=Object.assign(clone(PDEF),keep,{cc:P.cc}); tabC="camera"; }
   lookId="";
   if(kind==="video" && M==="camera") V.fps=camType().vfps;
