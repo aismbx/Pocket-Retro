@@ -297,6 +297,24 @@ body.finder-open{overflow:hidden}
   .hbtns{gap:4px}
   .cmp{padding:6px 8px;letter-spacing:.08em}
 }
+
+/* ---------- custom frames + join order ---------- */
+.framelib{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;padding-top:4px}
+.fthumb{width:72px;height:54px;border:0;border-radius:6px;padding:0;overflow:hidden;cursor:pointer;display:grid;place-items:center;
+  background:repeating-conic-gradient(#3a3d43 0 25%,#2a2d32 0 50%) 0 0/12px 12px;box-shadow:inset 0 0 0 1px var(--edge)}
+.fthumb img{width:100%;height:100%;object-fit:contain;display:block}
+.fthumb[aria-pressed="true"]{outline:3px solid var(--tape);outline-offset:1px}
+.fthumb.add{background:var(--case-3);color:var(--silk);font:600 12px var(--f-silk);letter-spacing:.06em}
+.framerm{grid-column:1/-1}
+:root[data-theme="light"] .fthumb:not(.add){background:repeating-conic-gradient(#d3ccbe 0 25%,#efebe3 0 50%) 0 0/12px 12px}
+.rck{display:grid;place-items:center;font:700 11px/1 var(--f-silk);color:#04201b}
+
+/* ---------- 1.8.0 ---------- */
+.fadebox{padding-top:4px}
+.fadebox .ghead{padding-top:12px}
+.svbox .fadebox{padding-bottom:4px}
+.lookpick select{background:var(--vfd-bg);color:var(--silk);border:1px solid var(--edge);border-radius:6px;padding:4px 6px;font:500 13px var(--f-body);max-width:100%}
+@media (min-width:980px) and (min-height:560px){ .stage #vbox>.fadebox{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:22px} .stage #vbox>.fadebox>.ghead,.stage #vbox>.fadebox>.fshape{grid-column:1/-1} }
 </style>
 
 <script>try{ if(localStorage.getItem("pretro-theme")==="light") document.documentElement.dataset.theme="light"; }catch(e){}</script>
@@ -342,7 +360,7 @@ body.finder-open{overflow:hidden}
 
   <details class="panel backupbox" id="backupBox">
     <summary>Backup and restore</summary>
-    <p class="desc">Your roll, looks, imported presets, settings and channel logo live only in this browser. Save them all in one backup file, so you can get them back if Safari clears its data or you change phones.</p>
+    <p class="desc">Your roll, looks, imported presets, settings, channel logo and custom frames live only in this browser. Save them all in one backup file, so you can get them back if Safari clears its data or you change phones.</p>
     <div class="btns"><button class="pbtn" id="bkSave">Back up everything</button><button class="pbtn" id="bkLoad">Restore a backup</button></div>
     <div class="confirm" id="bkConfirm" hidden>Restore “<span id="bkName"></span>”? Its roll items and looks are added to what's here, and your settings and channel logo are replaced with the backup's. <button class="link" id="bkYes">Restore</button> <button class="link" id="bkNo">Cancel</button></div>
     <div class="anote" id="bkNote" role="status"></div>
@@ -351,7 +369,7 @@ body.finder-open{overflow:hidden}
 
   <details class="credits">
     <summary>Credits and license</summary>
-    <p>Pocket Retro is an unofficial personal app (version 1.5.1). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
+    <p>Pocket Retro is an unofficial personal app (version 1.8.0). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
     <pre>Copyright © valadaptive
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -420,6 +438,17 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     <audio id="resultAudio" controls hidden></audio>
   </div>
 
+  <div class="fadebox" id="fadeBox">
+    <div class="ghead">Fades</div>
+    <div class="ctl fsound"><label for="fAIn">Sound fade in</label><span class="val" id="fAInV">Off</span><input type="range" id="fAIn" min="0" max="5" step="0.1" value="0"></div>
+    <div class="ctl fsound"><label for="fAOut">Sound fade out</label><span class="val" id="fAOutV">Off</span><input type="range" id="fAOut" min="0" max="5" step="0.1" value="0"></div>
+    <div class="ctl flink"><span class="lbl">Picture fades match the sound</span><button class="sw" id="fLink" aria-pressed="false" aria-label="Picture fades match the sound"></button></div>
+    <div class="ctl fpic"><label for="fVIn">Picture fade in (from black)</label><span class="val" id="fVInV">Off</span><input type="range" id="fVIn" min="0" max="5" step="0.1" value="0"></div>
+    <div class="ctl fpic"><label for="fVOut">Picture fade out (to black)</label><span class="val" id="fVOutV">Off</span><input type="range" id="fVOut" min="0" max="5" step="0.1" value="0"></div>
+    <div class="ctl fshape"><span class="lbl">Fade shape</span><div class="seg" role="group" aria-label="Fade shape" id="fShape"><button data-v="smooth">Smooth</button><button data-v="straight">Straight</button></div>
+      <div class="desc" id="fDesc">Picture fades darken the picture before the tape effect, so the noise and colour smear carry on in the dark, like an old home video.</div></div>
+  </div>
+
   <details class="panel svbox" id="svBox" hidden>
     <summary>Make it a video</summary>
     <div class="ctl"><label for="svLen">Video length</label><span class="val" id="svLenV">5.0 s</span><input type="range" id="svLen" min="1" max="60" step="0.5" value="5"></div>
@@ -439,8 +468,9 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     <div class="rollbar" id="rollBar" hidden>
       <span id="selCount">0 selected</span>
       <button class="link" id="selAll">All</button>
-      <button class="pbtn" id="selSave">Save</button><button class="pbtn" id="selZip">Save as ZIP</button><button class="pbtn" id="selJoin" title="Join the selected videos into one, oldest first">Join videos</button><button class="pbtn danger" id="selDel">Delete</button>
+      <button class="pbtn" id="selSave">Save</button><button class="pbtn" id="selZip">Save as ZIP</button><button class="pbtn" id="selLook" title="Redo the selected photos with a look, from their originals">Apply look</button><button class="pbtn" id="selJoin" title="Join the selected videos into one, in the order you tapped them (the numbers show the order)">Join videos</button><button class="pbtn danger" id="selDel">Delete</button>
     </div>
+    <div class="confirm lookpick" id="lookPick" hidden><label for="lookSel">Apply</label> <select id="lookSel"></select> to <span id="lookN"></span>? New copies are added to the roll; the originals stay. <button class="link" id="lookGo">Apply</button> <button class="link" id="lookNo">Cancel</button></div>
     <div class="confirm" id="delConfirm" hidden>Delete <span id="delN"></span>? This can't be undone. <button class="link" id="delYes">Delete</button> <button class="link" id="delNo">Keep</button></div>
     <div class="viewer" id="viewer" hidden>
       <div class="vmedia" id="viewerMedia"></div>
@@ -781,7 +811,8 @@ const CLOOKS=[
   {id:"mono", name:"Mono",      sub:"Black and white", gain:[1,1,1],   con:1.30, sat:0,    lift:6,  tint:[0,0,0],   clip:1.6},
 ];
 function cdefaults(){ return {type:"vga", look:"day", flash:false, noise:45, mic:true, scale:1, seed:0,
-  stamp:"none", stampFmt:"yy", stampTime:false, stampPos:"br", stampSize:1, frame:"none", crop:"sensor"}; }
+  stamp:"none", stampFmt:"yy", stampTime:false, stampPos:"br", stampSize:1, frame:"none", crop:"sensor",
+  cfId:"", cfFit:"stretch", cfScale:1, cfX:0, cfY:0, cfOpacity:1, cfBlend:"normal"}; }
 let C=cdefaults();
 const camType=()=>CAMS.find(c=>c.id===C.type)||CAMS[0];
 function camParams(){ const T=camType(), L=CLOOKS.find(l=>l.id===C.look)||CLOOKS[0], tt=T.tint||[0,0,0];
@@ -892,9 +923,10 @@ function presetSettings(p){ if(p.j) return fromNtscRs(p.j); const S=merge(defaul
 
 /* ---------- picture + overlay settings ---------- */
 const PDEF={aspect:"4:3", rot:0, flip:false, lines:480, bright:0, contrast:1, sat:1, warmth:0, osd:"none",
-  border:"none", borderColor:"#000000", borderSize:0.06,
+  border:"none", borderColor:"#000000", borderSize:0.06, vBg:"blur", vZoom:1, vY:0,
   rating:"none", ratingPos:"tl", ratingOpacity:0.6, ratingSize:0.22, ratingTime:"all",
   logoOn:false, logoPos:"tr", logoX:0, logoY:0, logoSize:0.14, logoOpacity:0.55, logoWhite:false, logoTime:"all",
+  frameOn:false, fId:"", fFit:"stretch", fScale:1, fX:0, fY:0, fOpacity:1, fBlend:"normal", fSoft:false,
   crt:{on:false,curve:0.5,scan:0.55,mask:"grille",maskAmt:0.35,glow:0.35,vig:0.45,bezel:true},
   cc:{on:false,text:"[ MUSIC PLAYING ]",size:1,pos:"bottom",offset:0.08,align:"center",color:"white",bg:"black",soft:false,from:0,to:0}};
 /* TV Parental Guidelines icons (the user's SVG files) */
@@ -966,9 +998,12 @@ const CONTROLS={
   {k:"rng",id:"satur",label:"Saturation",min:0,max:2,step:0.01,fmt:f2,get:()=>P.sat,set:v=>P.sat=v,pic:1},
   {k:"rng",id:"warmth",label:"Warmth",min:-1,max:1,step:0.01,fmt:v=>(v>0?"+":"")+f2(v),get:()=>P.warmth,set:v=>P.warmth=v,pic:1},
   {k:"head",label:"Border"},
-  {k:"seg",id:"border",label:"Border style",opts:[["none","None"],["pillar","Pillarbox 16:9"],["letter","Letterbox 4:3"],["frame","Frame"]],get:()=>P.border,set:v=>{P.border=v; buildPanel();},pic:1,desc:"Pillarbox puts a 4:3 picture in a 16:9 frame with bars at the sides. Letterbox puts a widescreen band in a 4:3 frame with bars above and below. Pictures are trimmed to fit."},
+  {k:"seg",id:"border",label:"Border style",opts:[["none","None"],["pillar","Pillarbox 16:9"],["letter","Letterbox 4:3"],["frame","Frame"],["vertical","Vertical 9:16"]],get:()=>P.border,set:v=>{P.border=v; buildPanel();},pic:1,desc:"Pillarbox puts a 4:3 picture in a 16:9 frame with bars at the sides. Letterbox puts a widescreen band in a 4:3 frame with bars above and below. Vertical 9:16 makes a tall picture for TikTok, Reels and Shorts. Pictures are trimmed to fit."},
   {k:"rng",id:"bsize",label:"Frame thickness",min:0.01,max:0.25,step:0.005,fmt:pct,get:()=>P.borderSize,set:v=>P.borderSize=v,pic:1,show:()=>P.border==="frame"},
-  {k:"color",id:"bcolor",label:"Border colour",get:()=>P.borderColor,set:v=>P.borderColor=v,pic:1,show:()=>P.border!=="none"},
+  {k:"seg",id:"vbg",label:"Background",opts:[["blur","Blurred picture"],["black","Black"],["colour","Colour"]],get:()=>P.vBg,set:v=>{P.vBg=v; buildPanel();},pic:1,show:()=>P.border==="vertical",desc:"What fills the space above and below the picture."},
+  {k:"rng",id:"vzoom",label:"Zoom",min:1,max:2.3,step:0.01,fmt:v=>Math.round(v*100)+"%",get:()=>P.vZoom,set:v=>P.vZoom=v,pic:1,show:()=>P.border==="vertical",desc:"Makes the picture bigger in the tall frame. The sides are trimmed."},
+  {k:"rng",id:"vy",label:"Move up or down",min:-0.35,max:0.35,step:0.005,fmt:v=>v===0?"0":(v>0?"↑ ":"↓ ")+Math.round(Math.abs(v)*100)+"%",get:()=>P.vY,set:v=>P.vY=v,pic:1,show:()=>P.border==="vertical"},
+  {k:"color",id:"bcolor",label:"Border colour",get:()=>P.borderColor,set:v=>P.borderColor=v,pic:1,show:()=>P.border!=="none"&&!(P.border==="vertical"&&P.vBg!=="colour")},
  ],
  audio:[
   {k:"note"},
@@ -1015,7 +1050,14 @@ const CONTROLS={
   {k:"rng",id:"ssize",label:"Stamp size",min:0.5,max:2.5,step:0.05,fmt:v=>Math.round(v*100)+"%",get:()=>C.stampSize,set:v=>C.stampSize=v,pic:1,show:()=>C.stamp!=="none"},
   {k:"seg",id:"spos",label:"Position",opts:[["br","Bottom right"],["bl","Bottom left"],["tr","Top right"],["tl","Top left"]],get:()=>C.stampPos,set:v=>C.stampPos=v,pic:1,show:()=>C.stamp!=="none"},
   {k:"head",label:"Frame"},
-  {k:"seg",id:"sframe",label:"Frame style",opts:[["none","None"],["view","Viewfinder"],["phone","Phone camera"],["info","Shot info"]],get:()=>C.frame,set:v=>C.frame=v,pic:1,desc:"Viewfinder adds an old camera screen's battery, frame counter and focus marks. Phone camera adds a 2000s phone's status and soft-key bars."},
+  {k:"seg",id:"sframe",label:"Frame style",opts:[["none","None"],["view","Viewfinder"],["phone","Phone camera"],["info","Shot info"],["custom","Your own"]],get:()=>C.frame,set:v=>{C.frame=v; if(v==="custom"&&!curFrame()&&FRAMES.length) C.cfId=FRAMES[FRAMES.length-1].id; buildPanel();},pic:1,desc:"Viewfinder adds an old camera screen's battery, frame counter and focus marks. Phone camera adds a 2000s phone's status and soft-key bars."},
+  {k:"frames",id:"cflib",label:"Your frames",show:()=>C.frame==="custom",desc:"Upload a PNG with a see-through middle, like a photo booth border or a scrapbook frame. Your frames stay in this browser and go into your backups."},
+  {k:"seg",id:"cffit",label:"Fit",opts:[["stretch","Stretch to fill"],["fit","Fit inside"],["fill","Cover (crop)"]],get:()=>C.cfFit,set:v=>C.cfFit=v,pic:1,show:()=>C.frame==="custom"&&!!curFrame()},
+  {k:"rng",id:"cfscale",label:"Size",min:0.3,max:2,step:0.01,fmt:pct,get:()=>C.cfScale,set:v=>C.cfScale=v,pic:1,show:()=>C.frame==="custom"&&!!curFrame()},
+  {k:"rng",id:"cfx",label:"Move left or right",min:-0.5,max:0.5,step:0.005,fmt:v=>v===0?"0":(v<0?"← ":"→ ")+Math.round(Math.abs(v)*100)+"%",get:()=>C.cfX,set:v=>C.cfX=v,pic:1,show:()=>C.frame==="custom"&&!!curFrame()},
+  {k:"rng",id:"cfy",label:"Move up or down",min:-0.5,max:0.5,step:0.005,fmt:v=>v===0?"0":(v>0?"↑ ":"↓ ")+Math.round(Math.abs(v)*100)+"%",get:()=>C.cfY,set:v=>C.cfY=v,pic:1,show:()=>C.frame==="custom"&&!!curFrame()},
+  {k:"rng",id:"cfop",label:"Opacity",min:0.05,max:1,step:0.01,fmt:pct,get:()=>C.cfOpacity,set:v=>C.cfOpacity=v,pic:1,show:()=>C.frame==="custom"&&!!curFrame()},
+  {k:"seg",id:"cfblend",label:"Blend",opts:[["normal","Normal"],["screen","Screen"],["multiply","Multiply"]],get:()=>C.cfBlend,set:v=>C.cfBlend=v,pic:1,show:()=>C.frame==="custom"&&!!curFrame(),desc:"Screen hides black areas, good for light leaks and glow frames. Multiply hides white areas, good for paper and sketch frames."},
  ],
  screen:[
   {k:"sw",id:"crtOn",label:"CRT TV look",get:()=>P.crt.on,set:v=>{P.crt.on=v; buildPanel();},desc:"Shows the picture on an old tube TV. The output doubles in size so the scanlines and phosphor pattern show."},
@@ -1057,6 +1099,16 @@ const CONTROLS={
   {k:"rng",id:"lop",label:"Opacity",min:0.1,max:1,step:0.01,fmt:pct,get:()=>P.logoOpacity,set:v=>P.logoOpacity=v,pic:1,show:()=>logoShown()},
   {k:"sw",id:"lwhite",label:"Make it white",get:()=>P.logoWhite,set:v=>P.logoWhite=v,pic:1,show:()=>logoShown(),desc:"Turns the logo into a white shape, the classic see-through look of 2000s channel logos."},
   {k:"seg",id:"ltime",label:"In videos, show it",opts:[["all","The whole time"],["15","First 15 seconds"],["5","First 5 seconds"]],get:()=>P.logoTime,set:v=>P.logoTime=v,pic:1,show:()=>logoShown()},
+  {k:"head",label:"Frame"},
+  {k:"sw",id:"tfOn",label:"Show a frame",get:()=>P.frameOn,set:v=>{P.frameOn=v; if(v&&!curFrame()&&FRAMES.length) P.fId=FRAMES[FRAMES.length-1].id; buildPanel();},pic:1,desc:"Put one of your own PNG frames around the picture. It's the same frame collection as Camera mode."},
+  {k:"frames",id:"tflib",label:"Your frames",show:()=>P.frameOn,desc:"Upload a PNG with a see-through middle. Your frames stay in this browser and go into your backups."},
+  {k:"seg",id:"tffit",label:"Fit",opts:[["stretch","Stretch to fill"],["fit","Fit inside"],["fill","Cover (crop)"]],get:()=>P.fFit,set:v=>P.fFit=v,pic:1,show:()=>P.frameOn&&!!curFrame()},
+  {k:"rng",id:"tfscale",label:"Size",min:0.3,max:2,step:0.01,fmt:pct,get:()=>P.fScale,set:v=>P.fScale=v,pic:1,show:()=>P.frameOn&&!!curFrame()},
+  {k:"rng",id:"tfx",label:"Move left or right",min:-0.5,max:0.5,step:0.005,fmt:v=>v===0?"0":(v<0?"← ":"→ ")+Math.round(Math.abs(v)*100)+"%",get:()=>P.fX,set:v=>P.fX=v,pic:1,show:()=>P.frameOn&&!!curFrame()},
+  {k:"rng",id:"tfy",label:"Move up or down",min:-0.5,max:0.5,step:0.005,fmt:v=>v===0?"0":(v>0?"↑ ":"↓ ")+Math.round(Math.abs(v)*100)+"%",get:()=>P.fY,set:v=>P.fY=v,pic:1,show:()=>P.frameOn&&!!curFrame()},
+  {k:"rng",id:"tfop",label:"Opacity",min:0.05,max:1,step:0.01,fmt:pct,get:()=>P.fOpacity,set:v=>P.fOpacity=v,pic:1,show:()=>P.frameOn&&!!curFrame()},
+  {k:"seg",id:"tfblend",label:"Blend",opts:[["normal","Normal"],["screen","Screen"],["multiply","Multiply"]],get:()=>P.fBlend,set:v=>P.fBlend=v,pic:1,show:()=>P.frameOn&&!!curFrame(),desc:"Screen hides black areas, good for light leaks and glow frames. Multiply hides white areas, good for paper and sketch frames."},
+  {k:"sw",id:"tfSoft",label:"Run through the effect",get:()=>P.fSoft,set:v=>P.fSoft=v,pic:1,show:()=>P.frameOn&&!!curFrame(),desc:"Off: crisp, laid on top after the tape look. On: soft and smeared, as if the frame was recorded onto the tape."},
  ],
 };
 
@@ -1129,6 +1181,14 @@ function buildPanel(){
       pb.textContent=LOGO.url?"Replace":"Choose image"; rm.hidden=!LOGO.url;
       pb.onclick=()=>fi.click(); fi.onchange=async()=>{ const f=fi.files&&fi.files[0]; fi.value=""; if(f) await setLogo(f); };
       rm.onclick=()=>clearLogo();
+    } else if(c.k==="frames"){
+      row.innerHTML=`<span class="lbl"></span><div class="framelib" role="group"></div><input type="file" accept="image/png,image/*" class="vh" tabindex="-1" aria-hidden="true" id="inFrame">`;
+      row.querySelector(".lbl").textContent=c.label; const lib=row.querySelector(".framelib"), fi=row.querySelector("input"); lib.setAttribute("aria-label",c.label);
+      for(const f of FRAMES){ const b=document.createElement("button"); b.type="button"; b.className="fthumb"; b.setAttribute("aria-pressed",String(f.id===curFrameId())); b.setAttribute("aria-label","Use frame "+f.name); b.title=f.name;
+        const im=document.createElement("img"); im.src=f.url; im.alt=""; b.appendChild(im); b.onclick=()=>{ setFrameId(f.id); buildPanel(); changed(true); }; lib.appendChild(b); }
+      const add=document.createElement("button"); add.type="button"; add.className="fthumb add"; add.id="c-frameAdd"; add.textContent="+ Upload"; add.onclick=()=>fi.click(); lib.appendChild(add);
+      fi.onchange=async()=>{ const f=fi.files&&fi.files[0]; fi.value=""; if(f) await addFrameFile(f); };
+      const cf=curFrame(); if(cf){ const w=document.createElement("div"); w.className="framerm"; const rm=document.createElement("button"); rm.type="button"; rm.className="link"; rm.id="c-frameRemove"; rm.textContent=`Remove “${cf.name}”`; rm.onclick=()=>removeFrame(cf.id); w.appendChild(rm); row.appendChild(w); }
     } else if(c.k==="sw"){
       row.innerHTML=`<span class="lbl"></span><button class="sw" id="c-${c.id}"></button>`;
       row.querySelector(".lbl").textContent=c.label; const b=row.querySelector("button"); b.setAttribute("aria-label",c.label);
@@ -1232,6 +1292,7 @@ function prep(source, offsetMs, reuse){
       const l=0.299*r+0.587*gg+0.114*bl; d[i]=l+(r-l)*s; d[i+1]=l+(gg-l)*s; d[i+2]=l+(bl-l)*s; }
     x.putImageData(id,0,0);
   }
+  if(M==="tape" && P.frameOn && P.fSoft) drawTapeFrame(x,0,0,W,H);
   if(P.osd!=="none") drawOsd(x,W,H,offsetMs||0);
   if(P.rating!=="none") drawRating(x,W,H,offsetMs||0);
   if(P.logoOn && LOGO.img) drawLogo(x,W,H,offsetMs||0);
@@ -1382,6 +1443,7 @@ function drawCamOverlays(x,W,H,tMs,frame){
     const [rw,rh]=kind==="video"?T.vres:T.res; x.fillText(`F2.8  1/${C.flash?60:125}  ISO100  ${rw}×${rh}${C.flash?"  ϟ":""}`,bh*0.35,H-bh/2);
     x.textAlign="right"; x.fillText(`100-${String(counterNum()).padStart(4,"0")}`,W-bh*0.35,H-bh/2); x.restore();
   }
+  if(C.frame==="custom") drawCustomFrame(x,W,H);
   if(C.stamp!=="none"){
     const txt=stampText(t), h=Math.round(H*0.065*(C.stampSize||1)), mx=Math.round(W*0.05), my=Math.round(H*(C.frame==="phone"?0.13:C.frame==="info"&&C.stampPos[0]==="b"?0.13:0.055));
     const left=C.stampPos[1]==="l", top=C.stampPos[0]==="t", px=left?mx:W-mx, by=top?my+h:H-my;
@@ -1417,6 +1479,11 @@ function engine(op,data,W,H,Px,frame){
 /* ================= pipeline ================= */
 function borderGeom(W,H){
   const ev=n=>Math.max(2,Math.round(n/2)*2);
+  if(P.border==="vertical"){ /* a tall 9:16 frame for phones: the picture across the middle, zoomed in if you like (the sides are trimmed) */
+    const Wo=ev(W), Ho=ev(Wo*16/9), z=Math.max(1,P.vZoom||1); let h=ev(H*z*Wo/W), sw=ev(W/z), sh=H;
+    if(h>Ho){ sh=Math.max(2,Math.round(H*Ho/h)); h=Ho; }
+    const y=Math.max(0,Math.min(Ho-h,Math.round((Ho-h)/2-(P.vY||0)*Ho)));
+    return {Wo,Ho,x:0,y,w:Wo,h,sx:(W-sw)>>1,sy:(H-sh)>>1,sw,sh}; }
   if(P.border==="pillar"){ /* a 4:3 picture inside a 16:9 frame: bars left and right; wider pictures are trimmed to 4:3 */
     const sw=W/H>4/3?ev(H*4/3):W, sh=H, Wo=ev(H*16/9); return {Wo,Ho:H,x:(Wo-sw)>>1,y:0,w:sw,h:sh,sx:(W-sw)>>1,sy:0,sw,sh}; }
   if(P.border==="letter"){ /* a widescreen 16:9 band inside a 4:3 frame: bars top and bottom; taller pictures are trimmed to 16:9 */
@@ -1427,8 +1494,21 @@ function borderGeom(W,H){
 const rawCanvas=document.createElement("canvas");
 function framed(buf,W,H,dst){ bufToCanvas(buf,W,H,rawCanvas); return frameCanvas(rawCanvas,dst); }
 function bufToCanvas(buf,W,H,c){ if(c.width!==W||c.height!==H){ c.width=W; c.height=H; } c.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(buf),W,H),0,0); return c; }
+/* blurred, darkened copy of the picture behind a vertical frame: shrink a lot, then stretch back up (works in every browser) */
+const blurC=document.createElement("canvas");
+function verticalBlur(c,srcC,g){
+  const W=srcC.width, H=srcC.height, s=Math.max(g.Wo/W,g.Ho/H), cw=W*s, ch=H*s;
+  const bw=Math.max(4,Math.round(g.Wo/22)), bh=Math.max(4,Math.round(g.Ho/22)); blurC.width=bw; blurC.height=bh;
+  const b=blurC.getContext("2d"); b.imageSmoothingEnabled=true; b.imageSmoothingQuality="high";
+  b.drawImage(srcC,(bw-cw/22)/2,(bh-ch/22)/2,cw/22,ch/22);
+  c.save(); c.imageSmoothingEnabled=true; c.imageSmoothingQuality="high"; c.drawImage(blurC,0,0,g.Wo,g.Ho);
+  c.fillStyle="rgba(0,0,0,.38)"; c.fillRect(0,0,g.Wo,g.Ho); c.restore();
+}
 function frameCanvas(srcC,dst){ const W=srcC.width, H=srcC.height, g=borderGeom(W,H); if(dst.width!==g.Wo||dst.height!==g.Ho){ dst.width=g.Wo; dst.height=g.Ho; }
-  const c=dst.getContext("2d"); c.fillStyle=P.borderColor||"#000"; c.fillRect(0,0,g.Wo,g.Ho); c.drawImage(srcC,g.sx,g.sy,g.sw,g.sh,g.x,g.y,g.w,g.h);
+  const c=dst.getContext("2d");
+  if(P.border==="vertical" && P.vBg==="blur") verticalBlur(c,srcC,g);
+  else { c.fillStyle=P.border==="vertical"&&P.vBg==="black"?"#000":(P.borderColor||"#000"); c.fillRect(0,0,g.Wo,g.Ho); }
+  c.drawImage(srcC,g.sx,g.sy,g.sw,g.sh,g.x,g.y,g.w,g.h);
   g.cx=g.sx/W; g.cy=g.sy/H; g.cw=g.sw/W; g.ch=g.sh/H; return g; }
 /* closed captions: CEA-608 style boxes, one per line, in the VCR OSD Mono font */
 const CC_COL={white:"#f4f4f4",yellow:"#ffe94a",cyan:"#3ff0ff",green:"#4dff4d",magenta:"#ff4dff",red:"#ff4545",blue:"#5a7dff"};
@@ -1468,10 +1548,12 @@ async function produce(source,tMs,frame,R,render){
   let pr;
   if(!render && !prepDirty && R.pr && R.prMode===M) pr=R.pr;
   else { await fontReady(); pr = M==="tape" ? prep(source,tMs,R) : prepCam(source,R); if(!render){ R.pr=pr; R.prMode=M; prepDirty=false; } }
+  if(render && FADE_K<1){ const d=pr.data, k=Math.max(0,FADE_K); for(let i=0;i<d.length;i+=4){ d[i]*=k; d[i+1]*=k; d[i+2]*=k; } }
   let canvas, rect;
   if(M==="tape"){
     const out=await engine("ntsc",pr.data,pr.W,pr.H,R.S||clone(S),frame);
     const fc=R.fc||(R.fc=document.createElement("canvas")); const g=framed(out.buf,pr.W,pr.H,fc); canvas=fc; rect={x:g.x,y:g.y,w:g.w,h:g.h,cx:g.cx,cy:g.cy,cw:g.cw,ch:g.ch};
+    if(P.frameOn && !P.fSoft) drawTapeFrame(fc.getContext("2d"),g.x,g.y,g.w,g.h);
     if(P.cc.on && !P.cc.soft) drawCaptions(fc.getContext("2d"),g.x,g.y,g.w,g.h,tMs);
     if(P.crt.on && !LIVE_LINES){ const d=fc.getContext("2d").getImageData(0,0,fc.width,fc.height).data;
       const cr=await engine("crt",d,fc.width,fc.height,clone(P.crt),frame), cc=R.cc||(R.cc=document.createElement("canvas")); bufToCanvas(cr.buf,cr.W,cr.H,cc);
@@ -1568,15 +1650,24 @@ screen.addEventListener("contextmenu",e=>{ if(holding||cmpOn) e.preventDefault()
 
 /* ================= video + sound-only state ================= */
 const V={fps:30,start:0,end:0,dur:0};
+/* fades: sound and picture, separate or linked; kept in this browser */
+const FDEF={aIn:0,aOut:0,vIn:0,vOut:0,shape:"smooth",link:false};
+let F=Object.assign({},FDEF); try{ F=Object.assign({},FDEF,JSON.parse(localStorage.getItem("pretro-fades")||"{}")); }catch(e){}
+function saveFades(){ try{ localStorage.setItem("pretro-fades",JSON.stringify(F)); }catch(e){} }
+const fadeCurve=x=>{ x=Math.max(0,Math.min(1,x)); return F.shape==="straight"?x:0.5-0.5*Math.cos(Math.PI*x); };
+function fadeGain(t,total,fin,fout){ let g=1; if(fin>0&&t<fin) g*=fadeCurve(t/fin); if(fout>0&&t>total-fout) g*=fadeCurve((total-t)/fout); return g; }
+function soundFades(){ return kind==="image"?{in:0,out:0}:{in:F.aIn,out:F.aOut}; }
+function pictureFades(){ if(kind==="audio") return {in:0,out:0}; return (F.link&&kind==="video")?{in:F.aIn,out:F.aOut}:{in:F.vIn,out:F.vOut}; }
+let FADE_K=1;
 let result=null, resultKey="", cancelReq=false;
 const fmtT=t=>{ t=Math.max(0,t); const m=Math.floor(t/60), s=t-m*60; return `${m}:${s<10?"0":""}${s.toFixed(1)}`; };
-const keyNow=()=>JSON.stringify([M,S,P,A,C,V.fps,V.start,V.end]);
+const keyNow=()=>JSON.stringify([M,S,P,A,C,V.fps,V.start,V.end,F]);
 function markStale(){ if(kind!=="video"&&kind!=="audio") return; if(result && keyNow()!==resultKey) setSaveLabel(); }
 function setSaveLabel(){
   const fresh=result && keyNow()===resultKey;
   $("saveBtn").textContent = kind==="video" ? (fresh?"Save video":"Render video") : kind==="audio" ? (fresh?"Save sound":"Render sound") : isSample?"Save sample photo":"Save photo";
   $("keepBtn").hidden = kind!=="image";
-  $("svBox").hidden = kind!=="image";
+  $("svBox").hidden = kind!=="image"; placeFades();
   $("liveBtns").hidden = kind!=="video";
   if(kind==="video") $("vInfo").textContent = `${Math.max(1,Math.round((V.end-V.start)*V.fps))} frames${M==="camera"?` at ${camType().vres.join("×")}`:""}. Each frame goes through the full effect, so expect roughly 2 to 5 frames a second.`;
   if(kind==="audio") $("vInfo").textContent = `Sound only · ${fmtT(V.end-V.start)} selected. The Audio tab controls how it sounds.`;
@@ -1687,10 +1778,12 @@ async function renderVideo(){
     const venc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m), error:e=>{err=e;}}); venc.configure(vcfg);
     const fc=document.createElement("canvas"); fc.width=Wo; fc.height=Ho; const fx2=fc.getContext("2d"), t0=performance.now();
     thumb=await thumbOf(first.canvas);
+    const pf=pictureFades(), total=n/fps;
     for(let k=0;k<n;k++){
       if(cancelReq||err) break;
       const t=V.start+k/fps; let res=first;
-      if(k>0){ await seek(video,t); res=await produce(video,t*1000,k,R,true); }
+      FADE_K=Math.min(fadeGain(k/fps,total,pf.in,0),fadeGain((k+1)/fps,total,0,pf.out));
+      if(k>0 || FADE_K<1){ await seek(video,t); res=await produce(video,t*1000,k,R,true); }
       fx2.fillStyle="#000"; fx2.fillRect(0,0,Wo,Ho); fx2.drawImage(res.canvas,0,0);
       const frame=new VideoFrame(fc,{timestamp:Math.round(k*1e6/fps),duration:Math.round(1e6/fps)});
       venc.encode(frame,{keyFrame:k%(fps*2)===0}); frame.close();
@@ -1702,7 +1795,7 @@ async function renderVideo(){
     if(cancelReq){ $("note").textContent="Render cancelled."; if(outFile){ try{ await outFile.w.abort(); }catch(e){} outFile=null; } }
     else {
       let audioNote="";
-      if(aud.reader){ $("progTxt").textContent="Adding the sound…";
+      if(aud.reader){ $("progTxt").textContent="Adding the sound…"; aud.fade=soundFades();
         await encodeAudioInto(muxer,aud,V.start,n/fps,fx,p=>{ $("progTxt").textContent=`Adding the sound… ${Math.round(p*100)}%`; $("progBar").style.width=(p*100).toFixed(1)+"%"; });
         if(aud.mux==="opus") audioNote=" The sound is saved as Opus, which plays in Chrome and VLC but not in QuickTime or Photos. Rendering in Safari gives sound that plays everywhere."; }
       else audioNote=audioWhyNote(aud);
@@ -1722,7 +1815,7 @@ async function renderVideo(){
   }catch(e){ if(outFile){ try{ outFile.w.abort(); }catch(_){} } $("note").textContent="The video couldn't be rendered on this device. Try fewer scan lines, a shorter clip, a lower frame rate or no CRT look."; }
   endRender(lock);
 }
-function endRender(lock){ try{ lock&&lock.release(); }catch(e){} rendering=false; $("prog").hidden=true; $("vfdState").textContent="READY";
+function endRender(lock){ FADE_K=1; titleDone(cancelReq?"Cancelled":"Video ready"); try{ lock&&lock.release(); }catch(e){} rendering=false; $("prog").hidden=true; $("vfdState").textContent="READY";
   setSaveLabel(); if(kind==="video") seek(video,+$("vPos").value).then(()=>{ prepDirty=true; schedule(); }); }
 /* AAC setup bytes (AudioSpecificConfig). Safari's AudioEncoder hands back broken ones (WebKit bug 302253), which makes the
    sound track silent on iPhone, so we always write our own: AAC-LC, the real sample rate and channel count. */
@@ -1743,9 +1836,11 @@ async function encodeAudioInto(muxer,aud,start,dur,fx,prog){
   const isAac=aud.mux==="aac", asc=isAac?aacConfig(aud.cfg.sampleRate,aud.cfg.numberOfChannels):null;
   const out=(c,m)=>{ if(isAac){ c=aacChunk(c); if(m&&m.decoderConfig) m={...m,decoderConfig:{...m.decoderConfig,description:asc}}; } muxer.addAudioChunk(c,m); };
   let err=null; const aenc=new AudioEncoder({output:out, error:e=>{err=e;}}); aenc.configure(isAac?{...aud.cfg,aac:{format:"aac"}}:aud.cfg);
-  const reader=aud.reader||bufReader(aud.buf,aud.ch), CH=aud.ch, sr=reader.sr; let sent=0;
+  const reader=aud.reader||bufReader(aud.buf,aud.ch), CH=aud.ch, sr=reader.sr, fd=aud.fade; let sent=0;
   const emit=async(chans,L)=>{ for(let pos=0;pos<L;pos+=4096){ const len=Math.min(4096,L-pos), data=new Float32Array(len*CH);
       for(let c=0;c<CH;c++) data.set(chans[Math.min(c,chans.length-1)].subarray(pos,pos+len), c*len);
+      if(fd && (fd.in>0||fd.out>0)){ const t0=sent/sr, t1=(sent+len)/sr;
+        if((fd.in>0&&t0<fd.in)||(fd.out>0&&t1>dur-fd.out)) for(let j=0;j<len;j++){ const g=fadeGain((sent+j)/sr,dur,fd.in,fd.out); if(g!==1) for(let c=0;c<CH;c++) data[c*len+j]*=g; } }
       const ad=new AudioData({format:"f32-planar",sampleRate:sr,numberOfFrames:len,numberOfChannels:CH,timestamp:Math.round(sent/sr*1e6),data});
       sent+=len; aenc.encode(ad); ad.close(); while(aenc.encodeQueueSize>8) await sleep(2); if(err) throw err; } };
   if(fx) await processChunked(reader,start,dur,fx,CH,emit,prog);
@@ -1992,9 +2087,11 @@ async function processChunked(reader,t0,dur,A,CH,emit,prog){
 const STREAM_SAVE_MIN=90; // seconds
 function canStreamSave(){ try{ return typeof window.showSaveFilePicker==="function" && !window.claude && window.self===window.top; }catch(e){ return false; } }
 
-if(/[?&]test\b/.test(location.search)) window.__pr={openAudioReader,processChunked,bufReader,get A(){ return A; },get mediaFile(){ return mediaFile; },set(k,v){ if(k==="V") Object.assign(V,v); if(k==="P") Object.assign(P,v); if(k==="A") Object.assign(A,v); }};
+if(/[?&]test\b/.test(location.search)) window.__pr={openAudioReader,processChunked,bufReader,addToRoll,get roll(){ return roll; },get A(){ return A; },get mediaFile(){ return mediaFile; },set(k,v){ if(k==="V") Object.assign(V,v); if(k==="P") Object.assign(P,v); if(k==="A") Object.assign(A,v); }};
 
 /* ================= render sound only ================= */
+function applyBufFades(ab){ const fd=soundFades(); if(!(fd.in>0||fd.out>0)) return; const sr=ab.sampleRate, dur=ab.length/sr;
+  for(let c=0;c<ab.numberOfChannels;c++){ const d=ab.getChannelData(c); for(let i=0;i<d.length;i++){ const t=i/sr; if(t>=fd.in && t<=dur-fd.out) continue; d[i]*=fadeGain(t,dur,fd.in,fd.out); } } }
 function wavBlob(ab){
   const ch=ab.numberOfChannels, len=ab.length, sr=ab.sampleRate, buf=new ArrayBuffer(44+len*ch*2), v=new DataView(buf);
   const w=(o,s)=>{ for(let i=0;i<s.length;i++) v.setUint8(o+i,s.charCodeAt(i)); };
@@ -2018,15 +2115,15 @@ async function renderAudio(){
     const aud=await pickAudioFor(ab); let blob, ext, playBlob, note="";
     if(aud && typeof Mp4Muxer!=="undefined"){
       const muxer=new Mp4Muxer.Muxer({target:new Mp4Muxer.ArrayBufferTarget(), audio:{codec:aud.mux,sampleRate:sr,numberOfChannels:CH}, fastStart:"in-memory", firstTimestampBehavior:"offset"});
-      await encodeAudioInto(muxer,Object.assign({},aud,{buf:ab,ch:CH}),0,ab.duration,null); muxer.finalize();
+      await encodeAudioInto(muxer,Object.assign({},aud,{buf:ab,ch:CH,fade:soundFades()}),0,ab.duration,null); muxer.finalize();
       blob=new Blob([muxer.target.buffer],{type:"audio/mp4"}); ext="mp4"; playBlob=blob;
-    } else { const wav=wavBlob(ab); playBlob=wav; blob=await makeZip([{name:base+"-vhs.wav",blob:wav}]); ext="zip"; note=" This browser can't make an MP4 sound file, so it's saved as a WAV inside a ZIP."; }
+    } else { applyBufFades(ab); const wav=wavBlob(ab); playBlob=wav; blob=await makeZip([{name:base+"-vhs.wav",blob:wav}]); ext="zip"; note=" This browser can't make an MP4 sound file, so it's saved as a WAV inside a ZIP."; }
     result={blob,url:URL.createObjectURL(playBlob),ext,name:base}; resultKey=keyNow();
     $("resultAudio").src=result.url; $("resultAudio").hidden=false;
     await addToRoll({type:"audio",blob,thumb:await thumbOf(src),ext,name:base});
     $("note").textContent=`Sound ready (${fmtT(ab.duration)}) and added to your roll.${note} Tap Save sound to keep it.`;
   }catch(e){ $("note").textContent="The sound couldn't be processed on this device. Try a shorter selection."; }
-  try{ lock&&lock.release(); }catch(e){} rendering=false; $("prog").hidden=true; $("vfdState").textContent="READY"; setSaveLabel();
+  titleDone("Sound ready"); try{ lock&&lock.release(); }catch(e){} rendering=false; $("prog").hidden=true; $("vfdState").textContent="READY"; setSaveLabel();
 }
 async function pickAudioFor(ab){
   if(typeof AudioEncoder!=="function"||typeof AudioData!=="function") return null;
@@ -2175,7 +2272,7 @@ async function makeZip(files){
 /* ================= roll (kept in this browser) ================= */
 let roll=[], curItem=null, selecting=false; const sel=new Set();
 let dbp=null;
-function idb(){ if(dbp) return dbp; dbp=new Promise(res=>{ try{ const r=indexedDB.open("pocket-retro",1); r.onupgradeneeded=()=>r.result.createObjectStore("roll",{keyPath:"id"}); r.onsuccess=()=>res(r.result); r.onerror=()=>res(null); }catch(e){ res(null); } }); return dbp; }
+function idb(){ if(dbp) return dbp; dbp=new Promise(res=>{ try{ const r=indexedDB.open("pocket-retro",2); r.onupgradeneeded=()=>{ const db=r.result; if(!db.objectStoreNames.contains("roll")) db.createObjectStore("roll",{keyPath:"id"}); if(!db.objectStoreNames.contains("frames")) db.createObjectStore("frames",{keyPath:"id"}); }; r.onsuccess=()=>res(r.result); r.onerror=()=>res(null); }catch(e){ res(null); } }); return dbp; }
 async function dbPut(it){ try{ const db=await idb(); if(!db) return; const {url,thumbUrl,...rest}=it; db.transaction("roll","readwrite").objectStore("roll").put(rest); }catch(e){} }
 async function dbDel(id){ try{ const db=await idb(); if(!db) return; db.transaction("roll","readwrite").objectStore("roll").delete(id); }catch(e){} }
 async function dbAll(){ try{ const db=await idb(); if(!db) return []; return await new Promise(res=>{ const q=db.transaction("roll").objectStore("roll").getAll(); q.onsuccess=()=>res(q.result||[]); q.onerror=()=>res([]); }); }catch(e){ return []; } }
@@ -2195,18 +2292,20 @@ async function camAutoKeep(blob,c){ /* a shot taken with the camera goes to the 
 let srcKey="";
 function renderRoll(){
   const g=$("rollGrid"); g.textContent="";
+  const vidOrder=[...sel].filter(id=>{ const r=roll.find(x=>x.id===id); return r&&r.type==="video"; });
   for(const it of roll){ const b=document.createElement("button"); b.className="rthumb"; b.setAttribute("aria-label",(it.type==="photo"?"Photo":it.type==="video"?"Video":"Sound")+" from "+new Date(it.time).toLocaleString());
     if(sel.has(it.id)) b.setAttribute("aria-pressed","true");
     const im=document.createElement("img"); im.src=it.thumbUrl; im.alt=""; b.appendChild(im);
     if(it.type!=="photo"){ const t=document.createElement("span"); t.className="rtag"; t.textContent=it.type==="video"?"▶":"♪"; b.appendChild(t); }
-    if(selecting){ const ck=document.createElement("span"); ck.className="rck"; b.appendChild(ck); }
+    if(selecting){ const ck=document.createElement("span"); ck.className="rck"; const vi=vidOrder.indexOf(it.id); if(vi>=0) ck.textContent=vi+1; b.appendChild(ck); }
     b.onclick=()=>{ if(selecting){ sel.has(it.id)?sel.delete(it.id):sel.add(it.id); renderRoll(); } else openViewer(it); };
     g.appendChild(b); }
   $("rollCount").textContent=roll.length; $("rollEmpty").hidden=roll.length>0;
   $("rollSelect").textContent=selecting?"Done":"Select"; $("rollSelect").hidden=roll.length===0;
   $("rollBar").hidden=!selecting; $("selCount").textContent=`${sel.size} selected`;
-  ["selSave","selZip","selDel"].forEach(id=>$(id).disabled=sel.size===0);
+  ["selSave","selZip","selDel"].forEach(id=>$(id).disabled=sel.size===0); if(!selecting) $("lookPick").hidden=true;
   $("selJoin").disabled=roll.filter(r=>sel.has(r.id)&&r.type==="video").length<2;
+  $("selLook").disabled=!roll.some(r=>sel.has(r.id)&&r.type==="photo");
 }
 $("rollSelect").onclick=()=>{ selecting=!selecting; if(!selecting) sel.clear(); $("delConfirm").hidden=true; closeViewer(); renderRoll(); };
 $("selAll").onclick=()=>{ if(sel.size===roll.length) sel.clear(); else roll.forEach(r=>sel.add(r.id)); renderRoll(); };
@@ -2246,6 +2345,49 @@ $("vwNo").onclick=()=>{ $("vwConfirm").hidden=true; };
 $("vwYes").onclick=()=>{ const it=viewing; if(!it) return; URL.revokeObjectURL(it.thumbUrl); dbDel(it.id); roll=roll.filter(r=>r!==it); if(curItem===it) curItem=null; closeViewer(); renderRoll(); };
 
 
+/* ================= custom frames (Camera mode), kept in IndexedDB "frames" ================= */
+let FRAMES=[];
+function frameHydrate(f){ f.url=URL.createObjectURL(f.blob); const im=new Image(); im.onload=()=>{ prepDirty=true; schedule(); }; im.src=f.url; f.img=im; return f; }
+async function framesLoad(){
+  let list=[]; try{ const db=await idb(); if(db) list=await new Promise(res=>{ try{ const q=db.transaction("frames").objectStore("frames").getAll(); q.onsuccess=()=>res(q.result||[]); q.onerror=()=>res([]); }catch(e){ res([]); } }); }catch(e){}
+  list.sort((a,b)=>a.time-b.time); FRAMES=list.map(frameHydrate);
+  buildPanel(); prepDirty=true; schedule();
+}
+function curFrameId(){ return M==="tape"?P.fId:C.cfId; }
+function setFrameId(id){ if(M==="tape") P.fId=id; else C.cfId=id; }
+function curFrame(){ const id=curFrameId(); return FRAMES.find(f=>f.id===id)||null; }
+async function addFrameFile(file){
+  try{ const u=URL.createObjectURL(file);
+    const im=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=u; });
+    let w=im.naturalWidth||1200, h=im.naturalHeight||900; const s=Math.min(1,1600/Math.max(w,h)); w=Math.max(1,Math.round(w*s)); h=Math.max(1,Math.round(h*s));
+    const cv=document.createElement("canvas"); cv.width=w; cv.height=h; cv.getContext("2d").drawImage(im,0,0,w,h); URL.revokeObjectURL(u);
+    const blob=await toBlob(cv,"image/png");
+    const f={id:"f"+Date.now().toString(36)+Math.random().toString(36).slice(2,5), name:((file.name||"Frame").replace(/\.[^.]+$/,"")||"Frame").slice(0,30), time:Date.now(), blob};
+    const db=await idb(); if(db) await new Promise(res=>{ try{ const tx=db.transaction("frames","readwrite"); tx.objectStore("frames").put(f); tx.oncomplete=res; tx.onerror=res; tx.onabort=res; }catch(e){ res(); } });
+    FRAMES.push(frameHydrate(f)); if(M==="tape"){ P.frameOn=true; P.fId=f.id; } else { C.frame="custom"; C.cfId=f.id; } buildPanel(); changed(true);
+    $("note").textContent="Frame added. Use the controls below it to fit and place it.";
+  }catch(e){ $("note").textContent="That image couldn't be opened. Try a PNG file."; }
+}
+async function removeFrame(id){
+  const f=FRAMES.find(x=>x.id===id); if(!f) return;
+  try{ const db=await idb(); if(db) db.transaction("frames","readwrite").objectStore("frames").delete(id); }catch(e){}
+  URL.revokeObjectURL(f.url); FRAMES=FRAMES.filter(x=>x!==f);
+  const next=FRAMES.length?FRAMES[FRAMES.length-1].id:""; if(C.cfId===id) C.cfId=next; if(P.fId===id) P.fId=next;
+  buildPanel(); changed(true);
+}
+function drawFrameImg(x,ox,oy,W,H,o){
+  const f=FRAMES.find(fr=>fr.id===o.id), im=f&&f.img; if(!im||!im.complete||!im.naturalWidth) return;
+  const iw=im.naturalWidth, ih=im.naturalHeight; let w=W, h=H;
+  if(o.fit==="fit"){ const s=Math.min(W/iw,H/ih); w=iw*s; h=ih*s; } else if(o.fit==="fill"){ const s=Math.max(W/iw,H/ih); w=iw*s; h=ih*s; }
+  w*=o.scale; h*=o.scale; const px=ox+(W-w)/2+o.x*W, py=oy+(H-h)/2-o.y*H;
+  x.save(); x.beginPath(); x.rect(ox,oy,W,H); x.clip();
+  x.globalAlpha=o.opacity; x.globalCompositeOperation=o.blend==="screen"?"screen":o.blend==="multiply"?"multiply":"source-over";
+  x.imageSmoothingEnabled=true; x.imageSmoothingQuality="high"; x.drawImage(im,px,py,w,h); x.restore();
+}
+function drawCustomFrame(x,W,H){ drawFrameImg(x,0,0,W,H,{id:C.cfId,fit:C.cfFit,scale:C.cfScale,x:C.cfX,y:C.cfY,opacity:C.cfOpacity,blend:C.cfBlend}); }
+function drawTapeFrame(x,ox,oy,W,H){ drawFrameImg(x,ox,oy,W,H,{id:P.fId,fit:P.fFit,scale:P.fScale,x:P.fX,y:P.fY,opacity:P.fOpacity,blend:P.fBlend}); }
+framesLoad();
+
 /* ================= backup and restore (one ZIP: backup.json + the roll's files) ================= */
 function bkNote(t){ $("bkNote").textContent=t; }
 const MIME_EXT={"image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/heic":"heic","image/gif":"gif","video/mp4":"mp4","video/quicktime":"mov","video/webm":"webm","audio/mp4":"m4a","audio/mpeg":"mp3","audio/wav":"wav","audio/x-wav":"wav","application/zip":"zip"};
@@ -2265,13 +2407,15 @@ async function makeBackup(){
         e.src={path:p,type:it.src.type||"",name:it.src.name||""}; }
       items.push(e);
     }
+    const frames=[]; for(const f of FRAMES){ const p=`frames/${f.id}.png`; files.push({name:p,blob:f.blob}); frames.push({id:f.id,name:f.name,time:f.time,path:p}); }
     let settings=null; try{ settings=localStorage.getItem("pretro"); }catch(e){}
-    const man={app:"pocket-retro",backup:1,made:new Date().toISOString(),settings,looks:LOOKS,imports:IMPORTED,logo:LOGO.url,roll:items};
+    const man={app:"pocket-retro",backup:1,made:new Date().toISOString(),settings,looks:LOOKS,imports:IMPORTED,logo:LOGO.url,frames,roll:items};
     files.unshift({name:"backup.json",blob:new Blob([JSON.stringify(man)],{type:"application/json"})});
     const z=await makeZip(files);
     await d.save({filename:`pocket-retro_backup_${stamp(new Date())}.zip`,data:z});
     const n=roll.length, l=LOOKS.length;
-    bkNote(`Backup saved (${(z.size/1048576).toFixed(1)} MB): ${n} roll item${n===1?"":"s"}, ${l} look${l===1?"":"s"}, your settings${LOGO.url?" and your logo":""}. On iPhone, choose Save to Files.`);
+    const fr=FRAMES.length;
+    bkNote(`Backup saved (${(z.size/1048576).toFixed(1)} MB): ${n} roll item${n===1?"":"s"}, ${l} look${l===1?"":"s"}${fr?`, ${fr} frame${fr===1?"":"s"}`:""}, your settings${LOGO.url?" and your logo":""}. On iPhone, choose Save to Files.`);
   }catch(e){ bkNote(e&&e.code==="declined"?"Backup not saved.":e&&e.code==="too_large"?"Your roll is too big for one backup here. Save your videos, delete some from the roll, then try again.":"The backup couldn't be saved on this device."); }
   $("bkSave").disabled=false;
 }
@@ -2315,6 +2459,9 @@ async function restoreBackup(f){
       if(db) await new Promise(res=>{ try{ const tx=db.transaction("roll","readwrite"); tx.objectStore("roll").put(it); tx.oncomplete=res; tx.onerror=res; tx.onabort=res; }catch(err){ res(); } });
       added++;
     }
+    const fids=new Set(FRAMES.map(f=>f.id));
+    for(const f of man.frames||[]){ if(!f||!f.id||fids.has(f.id)) continue; const blob=await zipEntry(z,pre+f.path,"image/png"); if(!blob||!db) continue;
+      await new Promise(res=>{ try{ const tx=db.transaction("frames","readwrite"); tx.objectStore("frames").put({id:f.id,name:f.name||"Frame",time:f.time||Date.now(),blob}); tx.oncomplete=res; tx.onerror=res; tx.onabort=res; }catch(e){ res(); } }); }
     const lids=new Set(LOOKS.map(l=>l.id)); let looks=0;
     for(const l of man.looks||[]) if(l&&l.id&&l.data&&!lids.has(l.id)){ LOOKS.push(l); looks++; }
     saveLooks();
@@ -2532,6 +2679,34 @@ $("frameSave").onclick=()=>{ const c=currentFrame(); if(c) saveFrame(c); };
 $("frameKeep").onclick=()=>{ const c=currentFrame(); if(c) frameToRoll(c); };
 $("vwFrame").onclick=()=>{ const v=document.querySelector("#viewerMedia video"); if(v&&v.videoWidth){ v.pause(); saveFrame(v); } };
 
+/* ================= tab title: progress and "done" while the tab is in the background ================= */
+const BASE_TITLE=document.title||"Pocket Retro"; let titleT=null;
+function titleProgress(p){ if(document.hidden) document.title=`${Math.round(Math.max(0,Math.min(1,p))*100)}% · ${BASE_TITLE}`; }
+function titleDone(msg){ clearTimeout(titleT); if(document.hidden) document.title=`✓ ${msg||"Done"} · ${BASE_TITLE}`; else document.title=BASE_TITLE; }
+document.addEventListener("visibilitychange",()=>{ if(document.hidden) return; clearTimeout(titleT);
+  if(rendering) document.title=BASE_TITLE; else titleT=setTimeout(()=>{ document.title=BASE_TITLE; },4000); });
+{ const _progress=progress; progress=function(done,total,t0){ _progress(done,total,t0); titleProgress(total?done/total:0); }; }
+
+/* ================= fades UI (moves into the video panel or the photo-video panel) ================= */
+const fmtFade=v=>v>0?v.toFixed(1)+" s":"Off";
+function syncFades(){
+  for(const [id,k] of [["fAIn","aIn"],["fAOut","aOut"],["fVIn","vIn"],["fVOut","vOut"]]){ $(id).value=F[k]; $(id+"V").textContent=fmtFade(F[k]); }
+  $("fLink").setAttribute("aria-pressed",String(!!F.link));
+  $("fShape").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===F.shape)));
+  const box=$("fadeBox"), img=kind==="image", aud=kind==="audio";
+  box.querySelectorAll(".fsound").forEach(e=>e.hidden=img);
+  box.querySelector(".flink").hidden=kind!=="video";
+  box.querySelectorAll(".fpic").forEach(e=>e.hidden=aud||(kind==="video"&&F.link));
+  $("fDesc").hidden=aud;
+}
+function placeFades(){ const box=$("fadeBox");
+  if(kind==="image"){ const sv=$("svBox"), at=$("svInfo"); if(box.parentNode!==sv||box.nextSibling!==at) sv.insertBefore(box,at); }
+  else { const vb=$("vbox"), at=$("liveBtns"); if(box.parentNode!==vb||box.nextSibling!==at) vb.insertBefore(box,at); }
+  syncFades(); }
+for(const [id,k] of [["fAIn","aIn"],["fAOut","aOut"],["fVIn","vIn"],["fVOut","vOut"]]) $(id).addEventListener("input",e=>{ F[k]=+e.target.value; $(id+"V").textContent=fmtFade(F[k]); saveFades(); markStale(); });
+$("fLink").onclick=()=>{ F.link=!F.link; saveFades(); syncFades(); markStale(); };
+$("fShape").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; F.shape=b.dataset.v; saveFades(); syncFades(); markStale(); });
+
 /* ================= make a video from a photo ================= */
 const SV={len:5,fps:30}; let still=null;
 function clearStill(){ if(still&&still.url) URL.revokeObjectURL(still.url); still=null; $("svResult").hidden=true; $("svResult").removeAttribute("src"); $("svSave").hidden=true; }
@@ -2554,15 +2729,17 @@ $("svRender").onclick=async()=>{
     const muxer=new Mp4Muxer.Muxer({target:new Mp4Muxer.ArrayBufferTarget(),video:{codec:vp.mux,width:Wo,height:Ho,frameRate:fps},fastStart:"in-memory",firstTimestampBehavior:"offset"});
     let err=null; const venc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m),error:e=>{err=e;}}); venc.configure(vp.cfg);
     const fc=document.createElement("canvas"); fc.width=Wo; fc.height=Ho; const fx=fc.getContext("2d"), t0=performance.now(), thumb=await thumbOf(first.canvas);
+    const pf=pictureFades(), total=n/fps;
     for(let k=0;k<n;k++){
       if(svCancel||err) break;
-      const res = k===0 ? first : await produce(src,k*1000/fps,k,Rr,true);
+      FADE_K=Math.min(fadeGain(k/fps,total,pf.in,0),fadeGain((k+1)/fps,total,0,pf.out));
+      const res = (k===0 && FADE_K>=1) ? first : await produce(src,k*1000/fps,k,Rr,true);
       fx.fillStyle="#000"; fx.fillRect(0,0,Wo,Ho); fx.drawImage(res.canvas,0,0);
       const fr=new VideoFrame(fc,{timestamp:Math.round(k*1e6/fps),duration:Math.round(1e6/fps)}); venc.encode(fr,{keyFrame:k%(fps*2)===0}); fr.close();
       while(venc.encodeQueueSize>3) await sleep(4);
       const el=(performance.now()-t0)/1000, left=(n-k-1)/((k+1)/Math.max(el,0.001));
       $("svBar").style.width=((k+1)/n*100).toFixed(1)+"%"; $("svTxt").textContent=`Frame ${k+1} of ${n}`+(k>3?` · about ${left<60?Math.ceil(left)+" s":Math.ceil(left/60)+" min"} left`:"");
-      $("vfdState").textContent=`REC ${Math.round((k+1)/n*100)}%`;
+      $("vfdState").textContent=`REC ${Math.round((k+1)/n*100)}%`; titleProgress((k+1)/n);
       if(k%12===0) await show(res,false);
     }
     if(err) throw err;
@@ -2573,7 +2750,7 @@ $("svRender").onclick=async()=>{
       await addToRoll({type:"video",blob,thumb,ext:"mp4"});
       $("note").textContent=`Video ready: ${SV.len.toFixed(1)} seconds, ${(blob.size/1048576).toFixed(1)} MB, and added to your roll.`; }
   }catch(e){ $("note").textContent = e&&e.message==="size" ? "This device can't encode a video that size. Try fewer scan lines, no CRT look or a smaller export size." : "The video couldn't be made on this device. Try a shorter length or a lower frame rate."; }
-  try{ lock&&lock.release(); }catch(e){} rendering=false; $("svProg").hidden=true; $("vfdState").textContent="READY"; prepDirty=true; schedule();
+  FADE_K=1; titleDone(svCancel?"Cancelled":"Video ready"); try{ lock&&lock.release(); }catch(e){} rendering=false; $("svProg").hidden=true; $("vfdState").textContent="READY"; prepDirty=true; schedule();
 };
 $("svSave").onclick=async()=>{ if(!still) return; const d=await getDownloads(); if(!d){ $("note").textContent="Saving isn't available here. You can find it in your roll."; return; }
   try{ await d.save({filename:`pocket-retro_${stamp()}.mp4`,data:still.blob}); $("note").textContent="Tap Save Video in the share sheet to add it to Photos."; }
@@ -2615,7 +2792,36 @@ $("saveBtn").onclick=save; $("bSave").onclick=save;
 $("keepBtn").onclick=async()=>{ if(!lastBlob||!last) return; await addToRoll({type:"photo",blob:lastBlob,thumb:await thumbOf(last.canvas),ext:"jpg",src:isSample?null:mediaFile,srcFile:srcKey}); $("note").textContent="Added to your roll."; };
 
 /* ================= join videos from the roll ================= */
-$("selJoin").onclick=()=>joinVideos(roll.filter(r=>sel.has(r.id)&&r.type==="video").sort((a,b)=>a.time-b.time));
+$("selLook").onclick=()=>{ const n=roll.filter(r=>sel.has(r.id)&&r.type==="photo").length; if(!n) return;
+  const s=$("lookSel"); s.textContent="";
+  const add=(v,t)=>{ const o=document.createElement("option"); o.value=v; o.textContent=t; s.appendChild(o); };
+  add("","The current settings ("+(M==="tape"?"Tape":"Camera")+")"); for(const l of LOOKS) add(l.id,`${l.name} (${l.mode==="camera"?"Camera":"Tape"})`);
+  $("lookN").textContent=`${n} photo${n>1?"s":""}`; $("delConfirm").hidden=true; $("lookPick").hidden=false; };
+$("lookNo").onclick=()=>{ $("lookPick").hidden=true; };
+$("lookGo").onclick=()=>{ $("lookPick").hidden=true; const l=LOOKS.find(x=>x.id===$("lookSel").value)||null;
+  applyLookToItems(roll.filter(r=>sel.has(r.id)&&r.type==="photo").reverse(), l); };
+async function applyLookToItems(items,l){
+  if(rendering||!items.length) return; rendering=true; const note=$("note"), keep={S,P,A,C,M,presetId,kind,srcTime,lookId}; let done=0, failed=0;
+  $("vfdState").textContent="DEVELOP";
+  try{
+    if(l){ const d=clone(l.data); S=merge(defaults(),d.S||{}); P=Object.assign(clone(PDEF),d.P||{}); P.crt=Object.assign(clone(PDEF.crt),(d.P||{}).crt||{}); P.cc=Object.assign(clone(PDEF.cc),(d.P||{}).cc||{});
+      A=Object.assign(adefaults(),d.A||{}); C=Object.assign(cdefaults(),d.C||{}); M=l.mode==="camera"?"camera":"tape"; }
+    else { S=clone(S); P=clone(P); C=clone(C); }
+    kind="image";
+    for(const it of items){
+      note.textContent=`Applying ${l?"“"+l.name+"”":"the current settings"}… ${done+failed+1} of ${items.length}`; titleProgress((done+failed)/items.length);
+      try{ const im=await loadImage(it.src||it.blob); srcTime=(it.src&&it.src.lastModified)||it.time;
+        const res=await produce(im,0,0,{S:clone(S)},true); const blob=await toBlob(res.canvas,"image/jpeg",M==="camera"?0.95:0.9), thumb=await thumbOf(res.canvas);
+        try{ URL.revokeObjectURL(im.src); }catch(e){}
+        await addToRoll(Object.assign({type:"photo",blob,thumb,ext:"jpg",mode:M},it.src?{src:it.src,srcFile:it.srcFile}:{})); done++;
+      }catch(e){ failed++; }
+    }
+  } finally { ({S,P,A,C,M,presetId,kind,srcTime,lookId}=keep); rendering=false; $("vfdState").textContent="READY"; prepDirty=true; schedule(); }
+  selecting=false; sel.clear(); renderRoll();
+  note.textContent=`Done: ${done} new photo${done===1?"":"s"} at the front of your roll${failed?`; ${failed} couldn't be redone`:""}.`+(items.some(i=>!i.src)?" Photos without an original were redone from the saved photo, so effects stack.":"");
+  titleDone("Looks applied");
+}
+$("selJoin").onclick=()=>joinVideos([...sel].map(id=>roll.find(r=>r.id===id)).filter(r=>r&&r.type==="video"));
 function loadClip(blob){ return new Promise((res,rej)=>{ const v=document.createElement("video"); v.muted=true; v.playsInline=true; v.setAttribute("playsinline",""); v.preload="auto";
   v.onloadeddata=()=>res(v); v.onerror=()=>rej(new Error("clip")); v.src=URL.createObjectURL(blob); setTimeout(()=>rej(new Error("timeout")),15000); }); }
 async function joinVideos(items){
@@ -2633,7 +2839,8 @@ async function joinVideos(items){
       try{ ac.close(); }catch(e){}
       if(parts.some(Boolean)){ ab=new AudioBuffer({length:Math.max(1,total),numberOfChannels:2,sampleRate:sr}); let off=0;
         clips.forEach((c,i)=>{ const b=parts[i], n=Math.round(c.dur*sr); if(b) for(let ch=0;ch<2;ch++){ const d=b.getChannelData(Math.min(ch,b.numberOfChannels-1)).subarray(0,Math.min(n,b.length,ab.length-off)); ab.copyToChannel(d,ch,off); } off+=n; });
-        const pk=await pickAudioFor(ab); if(pk) aud={cfg:pk.cfg,mux:pk.mux,buf:ab,ch:2}; } }catch(e){ ab=null; aud=null; }
+        { const N=Math.round(0.012*sr); let o=0; for(let i=0;i<clips.length-1;i++){ o+=Math.round(clips[i].dur*sr); for(let ch=0;ch<2;ch++){ const d=ab.getChannelData(ch); for(let j=0;j<N;j++){ const g=j/N; if(o-1-j>=0) d[o-1-j]*=g; if(o+j<d.length) d[o+j]*=g; } } } }
+        const pk=await pickAudioFor(ab); if(pk) aud={cfg:pk.cfg,mux:pk.mux,buf:ab,ch:2,fade:{in:F.aIn,out:F.aOut}}; } }catch(e){ ab=null; aud=null; }
     const muxer=new Mp4Muxer.Muxer({target:new Mp4Muxer.ArrayBufferTarget(),video:{codec:vp.mux,width:W,height:H,frameRate:fps},
       audio:aud?{codec:aud.mux,sampleRate:ab.sampleRate,numberOfChannels:2}:undefined,fastStart:"in-memory",firstTimestampBehavior:"offset"});
     let err=null; const venc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m),error:e=>{err=e;}}); venc.configure(vp.cfg);
@@ -2642,10 +2849,11 @@ async function joinVideos(items){
     for(const c of clips){ const n=Math.max(1,Math.round(c.dur*fps)), vw=c.v.videoWidth, vh=c.v.videoHeight, s=Math.min(W/vw,H/vh), dw=vw*s, dh=vh*s;
       for(let i=0;i<n;i++){ if(err) throw err; await seek(c.v,Math.min(c.dur-0.001,i/fps));
         fx.fillStyle="#000"; fx.fillRect(0,0,W,H); fx.drawImage(c.v,(W-dw)/2,(H-dh)/2,dw,dh);
+        { const jf=F.link?{in:F.aIn,out:F.aOut}:{in:F.vIn,out:F.vOut}, T=totalFrames/fps, g=Math.min(fadeGain(k/fps,T,jf.in,0),fadeGain((k+1)/fps,T,0,jf.out)); if(g<1){ fx.fillStyle=`rgba(0,0,0,${(1-g).toFixed(3)})`; fx.fillRect(0,0,W,H); } }
         if(!thumb) thumb=await thumbOf(fc);
         const fr=new VideoFrame(fc,{timestamp:Math.round(k*1e6/fps),duration:Math.round(1e6/fps)}); venc.encode(fr,{keyFrame:k%(fps*2)===0}); fr.close(); k++;
         while(venc.encodeQueueSize>3) await sleep(4);
-        if(k%15===0){ note.textContent=`Joining ${clips.length} videos… frame ${k} of ${totalFrames}`; $("vfdState").textContent=`EDIT ${Math.round(k/totalFrames*100)}%`; } }
+        if(k%15===0){ titleProgress(k/totalFrames); note.textContent=`Joining ${clips.length} videos… frame ${k} of ${totalFrames}`; $("vfdState").textContent=`EDIT ${Math.round(k/totalFrames*100)}%`; } }
       URL.revokeObjectURL(c.v.src); }
     await venc.flush(); venc.close();
     if(aud){ note.textContent="Adding the sound…"; await encodeAudioInto(muxer,aud,0,ab.duration,null); }
