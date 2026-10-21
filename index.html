@@ -361,15 +361,16 @@ body.finder-open{overflow:hidden}
   <details class="panel backupbox" id="backupBox">
     <summary>Backup and restore</summary>
     <p class="desc">Your roll, looks, imported presets, settings, channel logo and custom frames live only in this browser. Save them all in one backup file, so you can get them back if Safari clears its data or you change phones.</p>
+    <p class="desc">Backups are saved as <b>.retrobackup</b> files, so iPhone keeps them as one file. Older <b>.zip</b> backups still work: choose the ZIP file itself, not the folder iPhone makes when you tap a ZIP.</p>
     <div class="btns"><button class="pbtn" id="bkSave">Back up everything</button><button class="pbtn" id="bkLoad">Restore a backup</button></div>
     <div class="confirm" id="bkConfirm" hidden>Restore “<span id="bkName"></span>”? Its roll items and looks are added to what's here, and your settings and channel logo are replaced with the backup's. <button class="link" id="bkYes">Restore</button> <button class="link" id="bkNo">Cancel</button></div>
     <div class="anote" id="bkNote" role="status"></div>
-    <input type="file" id="inBackup" class="vh" accept=".zip,application/zip" tabindex="-1" aria-hidden="true">
+    <input type="file" id="inBackup" class="vh" tabindex="-1" aria-hidden="true">
   </details>
 
   <details class="credits">
     <summary>Credits and license</summary>
-    <p>Pocket Retro is an unofficial personal app (version 1.8.0). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
+    <p>Pocket Retro is an unofficial personal app (version 1.8.2). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
     <pre>Copyright © valadaptive
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -433,6 +434,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       <button class="pbtn" id="frameSave">Save frame</button><button class="pbtn" id="frameKeep">Frame to roll</button>
     </div>
     <div class="desc vinfo" id="vInfo"></div>
+    <div class="desc vinfo soundinfo" id="soundInfo" role="status" hidden></div>
     <div class="prog" id="prog" hidden><div class="bar"><i id="progBar"></i></div><div class="progrow"><span id="progTxt">Starting…</span><button class="link" id="cancelBtn">Cancel</button></div></div>
     <video id="result" controls playsinline hidden></video>
     <audio id="resultAudio" controls hidden></audio>
@@ -1689,12 +1691,32 @@ $("vEnd").addEventListener("input",e=>{ V.end=Math.max(+e.target.value, V.start+
 $("vFps").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; V.fps=+b.dataset.f; syncVideoUi(); schedule(); });
 
 function clearResult(){ if(result&&result.url) URL.revokeObjectURL(result.url); result=null; resultKey=""; $("result").hidden=true; $("resultAudio").hidden=true; }
+/* open a video so its frames can be drawn. iOS (especially the home-screen app) often won't load anything until playback
+   is asked for, and play() itself can hang, so: keep the element in the page, nudge it with a muted play(), and never wait forever */
+async function openVideo(blob,label){
+  const v=document.createElement("video"); v.muted=true; v.defaultMuted=true; v.playsInline=true;
+  v.setAttribute("playsinline",""); v.setAttribute("webkit-playsinline",""); v.setAttribute("muted",""); v.preload="auto";
+  v.style.cssText="position:fixed;left:0;top:0;width:2px;height:2px;opacity:0.01;pointer-events:none;z-index:-1";
+  document.body.appendChild(v);
+  const u=URL.createObjectURL(blob); v.src=u;
+  try{
+    await new Promise((res,rej)=>{ let done=false; const fin=e=>{ if(done) return; done=true; clearInterval(tick); e?rej(e):res(); };
+      v.addEventListener("loadeddata",()=>fin(),{once:true}); v.addEventListener("canplay",()=>fin(),{once:true});
+      v.addEventListener("error",()=>fin(new Error("video")),{once:true});
+      const t0=Date.now(), tick=setInterval(()=>{ if(v.readyState>=2) fin(); else if(Date.now()-t0>30000) fin(new Error("timeout")); },250);
+      try{ v.load(); }catch(e){}
+      try{ const p=v.play(); if(p&&p.then) p.then(()=>{ v.pause(); }).catch(()=>{}); }catch(e){} });
+    await Promise.race([(async()=>{ try{ await v.play(); }catch(e){} })(), sleep(2500)]); try{ v.pause(); }catch(e){}
+    if(!v.videoWidth) await seek(v,0.05);
+    if(!v.videoWidth) throw new Error("no frames");
+    return v;
+  }catch(e){ try{ v.remove(); }catch(_){} URL.revokeObjectURL(u); throw e; }
+}
 async function loadVideo(f){
-  const v=document.createElement("video"); v.muted=true; v.playsInline=true; v.setAttribute("playsinline",""); v.preload="auto";
-  const u=URL.createObjectURL(f); v.src=u;
-  await new Promise((res,rej)=>{ v.onloadeddata=res; v.onerror=()=>rej(new Error("video")); setTimeout(()=>rej(new Error("timeout")),15000); });
-  try{ await v.play(); v.pause(); }catch(e){}
-  if(!v.videoWidth) throw new Error("no frames");
+  $("note").textContent="Opening the video…";
+  const v=await openVideo(f);
+  $("note").textContent="";
+  if(video && video!==v){ try{ video.pause(); video.remove(); }catch(e){} }
   if(video && video.src) URL.revokeObjectURL(video.src);
   video=v; mediaFile=f; src=v; kind="video"; isSample=false;
   V.dur=isFinite(v.duration)?v.duration:0; V.start=0; V.end=V.dur; clearResult();
@@ -1768,7 +1790,7 @@ async function renderVideo(){
   const Wo=first.canvas.width+(first.canvas.width&1), Ho=first.canvas.height+(first.canvas.height&1);
   const vpick=await pickVideoConfig(Wo,Ho,fps), vcfg=vpick&&vpick.cfg;
   if(!vcfg){ $("note").textContent=`This device can't encode ${Wo}×${Ho} video. Try fewer scan lines, turn off the CRT look or the border, or use a smaller export size.`; endRender(lock); return; }
-  $("progTxt").textContent="Reading the audio…";
+  $("progTxt").textContent="Reading the audio…"; if($("soundInfo")) $("soundInfo").hidden=true;
   const fx = M==="tape" ? (A.on?A:null) : (C.mic?micParams():null);
   const aud=await pickAudioStream();
   let err=null, thumb=null;
@@ -1799,6 +1821,7 @@ async function renderVideo(){
         await encodeAudioInto(muxer,aud,V.start,n/fps,fx,p=>{ $("progTxt").textContent=`Adding the sound… ${Math.round(p*100)}%`; $("progBar").style.width=(p*100).toFixed(1)+"%"; });
         if(aud.mux==="opus") audioNote=" The sound is saved as Opus, which plays in Chrome and VLC but not in QuickTime or Photos. Rendering in Safari gives sound that plays everywhere."; }
       else audioNote=audioWhyNote(aud);
+      soundReport(aud);
       muxer.finalize();
       if(outFile){ await outFile.w.close(); const file=await outFile.h.getFile(); outFile=null;
         result={blob:file,url:URL.createObjectURL(file),ext:"mp4",onDisk:true}; resultKey=keyNow();
@@ -1836,17 +1859,19 @@ async function encodeAudioInto(muxer,aud,start,dur,fx,prog){
   const isAac=aud.mux==="aac", asc=isAac?aacConfig(aud.cfg.sampleRate,aud.cfg.numberOfChannels):null;
   const out=(c,m)=>{ if(isAac){ c=aacChunk(c); if(m&&m.decoderConfig) m={...m,decoderConfig:{...m.decoderConfig,description:asc}}; } muxer.addAudioChunk(c,m); };
   let err=null; const aenc=new AudioEncoder({output:out, error:e=>{err=e;}}); aenc.configure(isAac?{...aud.cfg,aac:{format:"aac"}}:aud.cfg);
-  const reader=aud.reader||bufReader(aud.buf,aud.ch), CH=aud.ch, sr=reader.sr, fd=aud.fade; let sent=0;
+  const reader=aud.reader||bufReader(aud.buf,aud.ch), CH=aud.ch, sr=reader.sr, fd=aud.fade; let sent=0, peak=0;
   const emit=async(chans,L)=>{ for(let pos=0;pos<L;pos+=4096){ const len=Math.min(4096,L-pos), data=new Float32Array(len*CH);
       for(let c=0;c<CH;c++) data.set(chans[Math.min(c,chans.length-1)].subarray(pos,pos+len), c*len);
       if(fd && (fd.in>0||fd.out>0)){ const t0=sent/sr, t1=(sent+len)/sr;
         if((fd.in>0&&t0<fd.in)||(fd.out>0&&t1>dur-fd.out)) for(let j=0;j<len;j++){ const g=fadeGain((sent+j)/sr,dur,fd.in,fd.out); if(g!==1) for(let c=0;c<CH;c++) data[c*len+j]*=g; } }
       const ad=new AudioData({format:"f32-planar",sampleRate:sr,numberOfFrames:len,numberOfChannels:CH,timestamp:Math.round(sent/sr*1e6),data});
+      for(let j=0;j<data.length;j+=3){ const q=data[j]<0?-data[j]:data[j]; if(q>peak) peak=q; }
       sent+=len; aenc.encode(ad); ad.close(); while(aenc.encodeQueueSize>8) await sleep(2); if(err) throw err; } };
   if(fx) await processChunked(reader,start,dur,fx,CH,emit,prog);
   else { const total=Math.round(dur*sr), step=30*sr;
     for(let s0=0;s0<total;s0+=step){ const L=Math.min(step,total-s0); await emit(await reader.read(start+s0/sr,start+(s0+L)/sr),L); if(prog) prog((s0+L)/total); } }
   await aenc.flush(); aenc.close(); if(err) throw err;
+  aud.peak=peak;
 }
 
 /* ================= 1.5.1: streamed sound for long and large clips =================
@@ -1883,11 +1908,13 @@ async function mp4AudioReader(file){
   if(!moov) return {why:"not-mp4"};
   const u8=moov.u8, dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);
   const mvhd=mp4Kid(u8,moov.box,"mvhd"); const movieTs=mvhd?(u8[mvhd.s]===1?dv.getUint32(mvhd.s+20):dv.getUint32(mvhd.s+12)):1000;
-  for(const trak of mp4Kids(u8,moov.box.s,moov.box.e).filter(k=>k.type==="trak")){
-    const mdia=mp4Kid(u8,trak,"mdia"), hdlr=mp4Kid(u8,mdia,"hdlr"); if(!hdlr) continue;
-    if(String.fromCharCode(u8[hdlr.s+8],u8[hdlr.s+9],u8[hdlr.s+10],u8[hdlr.s+11])!=="soun") continue;
+  const isSoun=trak=>{ const h=mp4Kid(u8,mp4Kid(u8,trak,"mdia"),"hdlr"); return !!h && String.fromCharCode(u8[h.s+8],u8[h.s+9],u8[h.s+10],u8[h.s+11])==="soun"; };
+  const souns=mp4Kids(u8,moov.box.s,moov.box.e).filter(k=>k.type==="trak"&&isSoun(k));
+  let last={why:"no-audio"};
+  for(const trak of souns){ const r=await (async()=>{
+    const mdia=mp4Kid(u8,trak,"mdia");
     const mdhd=mp4Kid(u8,mdia,"mdhd"), ts=u8[mdhd.s]===1?dv.getUint32(mdhd.s+20):dv.getUint32(mdhd.s+12);
-    const stbl=mp4Kid(u8,mp4Kid(u8,mdia,"minf"),"stbl"), stsd=mp4Kid(u8,stbl,"stsd"); if(!stsd) continue;
+    const stbl=mp4Kid(u8,mp4Kid(u8,mdia,"minf"),"stbl"), stsd=mp4Kid(u8,stbl,"stsd"); if(!stsd) return {why:"codec",fmt:"?"};
     // sample description: AAC ("mp4a") with its esds, possibly inside a QuickTime "wave" box
     const E=stsd.s+8, fmt=String.fromCharCode(u8[E+4],u8[E+5],u8[E+6],u8[E+7]);
     if(fmt!=="mp4a") return {why:"codec",fmt};
@@ -1926,7 +1953,8 @@ async function mp4AudioReader(file){
     if(!count) return {why:"no-audio"};
     // find the decoded sample rate and channel count (HE-AAC doubles the rate) by decoding the first few frames
     if(typeof AudioDecoder!=="function") return {why:"no-decoder"};
-    const cfg={codec,sampleRate:entSr||48000,numberOfChannels:entCh||2}; if(asc&&codec.startsWith("mp4a")) cfg.description=asc;
+    const ai=ascInfo(asc);
+    const cfg={codec,sampleRate:(ai&&ai.sr)||(ver===0&&entSr)||48000,numberOfChannels:(ai&&ai.ch)||(ver===0&&entCh)||2}; if(asc&&codec.startsWith("mp4a")) cfg.description=asc;
     try{ const ok=await AudioDecoder.isConfigSupported(cfg); if(!ok.supported) return {why:"codec",fmt:codec}; }catch(e){ return {why:"codec",fmt:codec}; }
     const decodeRange=async(i0,i1,onData)=>{
       let err=null; const dec=new AudioDecoder({output:ad=>{ try{ onData(ad); }finally{ ad.close(); } }, error:e=>{err=e;}}); dec.configure(cfg);
@@ -1943,7 +1971,7 @@ async function mp4AudioReader(file){
     if(!sr) return {why:"codec",fmt:codec};
     const ch=Math.min(2,srcCh);
     const findFirst=x=>{ let lo=0, hi=count-1; while(lo<hi){ const m=(lo+hi)>>1; if(pts[m]+durs[m]<x) lo=m+1; else hi=m; } return lo; };
-    return { reader:{ sr, ch, duration:pts[count-1]+durs[count-1], async read(a,b){
+    return { reader:{ sr, ch, srcCh, codec:codec.startsWith("mp4a")?"AAC":"MP3", duration:pts[count-1]+durs[count-1], async read(a,b){
       const L=Math.max(0,Math.round((b-a)*sr)), out=[]; for(let c=0;c<ch;c++) out.push(new Float32Array(L));
       if(L===0 || b<=0 || a>=pts[count-1]+durs[count-1]) return out;
       const i0=Math.max(0,findFirst(a)-3), i1=Math.min(count-1,findFirst(b)+1), tmp={};
@@ -1953,9 +1981,15 @@ async function mp4AudioReader(file){
           ad.copyTo(buf,{planeIndex:pl,format:"f32-planar"});
           const j0=Math.max(0,-at), j1=Math.min(nf,L-at); out[c].set(buf.subarray(j0,j1),at+j0); } });
       return out; } } };
-  }
-  return {why:"no-audio"};
+  })(); if(r.reader) return r; last=r; }
+  return last;
 }
+/* AudioSpecificConfig -> object type, sample rate, channels */
+function ascInfo(a){ if(!a||a.length<2) return null; let bit=0;
+  const rd=n=>{ let v=0; for(let i=0;i<n;i++){ v=(v<<1)|((a[bit>>3]>>(7-(bit&7)))&1); bit++; } return v; };
+  try{ let aot=rd(5); if(aot===31) aot=32+rd(6); const fi=rd(4);
+    const sr=fi===15?rd(24):([96000,88200,64000,48000,44100,32000,24000,22050,16000,12000,11025,8000,7350][fi]||0), cc=rd(4);
+    return {aot,sr,ch:cc===7?8:cc}; }catch(e){ return null; } }
 /* pick the best way to read this clip's sound */
 async function openAudioReader(file){
   if(!file) return {why:"no-audio"};
@@ -1973,10 +2007,18 @@ async function pickAudioStream(){
   const rd=o.reader;
   for(const [mux,codec] of [["aac","mp4a.40.2"],["opus","opus"]]){
     const cfg={codec,sampleRate:rd.sr,numberOfChannels:rd.ch,bitrate:160000};
-    try{ const r=await AudioEncoder.isConfigSupported(cfg); if(r.supported) return {reader:rd,cfg,mux,ch:rd.ch,sr:rd.sr}; }catch(e){}
+    try{ const r=await AudioEncoder.isConfigSupported(cfg); if(r.supported){
+      const how=rd.codec?`${rd.codec} sound read from the file a piece at a time`:"sound decoded from the whole file";
+      const chs=(rd.srcCh||rd.ch)>2?`${rd.srcCh} channels (using the front two)`:rd.ch===1?"mono":"stereo";
+      return {reader:rd,cfg,mux,ch:rd.ch,sr:rd.sr,desc:`${how}, ${(rd.sr/1000).toFixed(rd.sr%1000?1:0)} kHz ${chs}`}; } }catch(e){}
   }
   return {why:"no-encoder"};
 }
+function soundReport(aud){ const el=$("soundInfo"); if(!el) return;
+  if(aud.reader){ const pk=aud.peak||0, db=pk>0?20*Math.log10(pk):-Infinity;
+    el.textContent=`Sound: ${aud.desc}, saved as ${aud.mux==="aac"?"AAC":"Opus"}. Loudest point ${pk>0?db.toFixed(1)+" dB":"silent"}.`+(pk<=0.0005?" The sound came out silent even though it was read. Please report this with the clip's details.":"")+(aud.mux==="opus"?" Opus plays in Chrome and VLC, not QuickTime or Photos.":""); }
+  else el.textContent="Sound: none."+audioWhyNote(aud)+(aud.fmt&&aud.fmt!=="?"?` (Format found: ${aud.fmt}.)`:"");
+  el.hidden=false; }
 function audioWhyNote(aud){
   if(aud.why==="no-encoder") return " This browser can't encode sound, so the video is silent.";
   if(aud.why==="too-big") return " This clip is too big to read its sound in its format, so the video is silent. Save it as an MP4 or MOV and try again.";
@@ -2412,7 +2454,7 @@ async function makeBackup(){
     const man={app:"pocket-retro",backup:1,made:new Date().toISOString(),settings,looks:LOOKS,imports:IMPORTED,logo:LOGO.url,frames,roll:items};
     files.unshift({name:"backup.json",blob:new Blob([JSON.stringify(man)],{type:"application/json"})});
     const z=await makeZip(files);
-    await d.save({filename:`pocket-retro_backup_${stamp(new Date())}.zip`,data:z});
+    await d.save({filename:`pocket-retro_backup_${stamp(new Date())}.retrobackup`,data:new Blob([z],{type:"application/octet-stream"})});
     const n=roll.length, l=LOOKS.length;
     const fr=FRAMES.length;
     bkNote(`Backup saved (${(z.size/1048576).toFixed(1)} MB): ${n} roll item${n===1?"":"s"}, ${l} look${l===1?"":"s"}${fr?`, ${fr} frame${fr===1?"":"s"}`:""}, your settings${LOGO.url?" and your logo":""}. On iPhone, choose Save to Files.`);
@@ -2822,15 +2864,14 @@ async function applyLookToItems(items,l){
   titleDone("Looks applied");
 }
 $("selJoin").onclick=()=>joinVideos([...sel].map(id=>roll.find(r=>r.id===id)).filter(r=>r&&r.type==="video"));
-function loadClip(blob){ return new Promise((res,rej)=>{ const v=document.createElement("video"); v.muted=true; v.playsInline=true; v.setAttribute("playsinline",""); v.preload="auto";
-  v.onloadeddata=()=>res(v); v.onerror=()=>rej(new Error("clip")); v.src=URL.createObjectURL(blob); setTimeout(()=>rej(new Error("timeout")),15000); }); }
+function loadClip(blob){ return openVideo(blob); }
 async function joinVideos(items){
   if(items.length<2||rendering) return;
   if(typeof VideoEncoder!=="function"||typeof Mp4Muxer==="undefined"){ $("note").textContent="Joining videos needs a newer browser (iOS 16.4 or later)."; return; }
   rendering=true; const note=$("note"); note.textContent="Getting the clips ready…"; $("vfdState").textContent="EDIT";
   let lock=null; try{ lock=await navigator.wakeLock?.request("screen"); }catch(e){}
   try{
-    const clips=[]; for(const it of items){ const v=await loadClip(it.blob); try{ await v.play(); v.pause(); }catch(e){} clips.push({it,v,dur:isFinite(v.duration)?v.duration:0}); }
+    const clips=[]; for(const it of items){ const v=await loadClip(it.blob); clips.push({it,v,dur:isFinite(v.duration)?v.duration:0}); }
     const W0=clips[0].v.videoWidth, H0=clips[0].v.videoHeight, W=W0+(W0&1), H=H0+(H0&1), fps=30;
     const vp=await pickVideoConfig(W,H,fps); if(!vp) throw new Error("size");
     let ab=null, aud=null;
@@ -2854,7 +2895,7 @@ async function joinVideos(items){
         const fr=new VideoFrame(fc,{timestamp:Math.round(k*1e6/fps),duration:Math.round(1e6/fps)}); venc.encode(fr,{keyFrame:k%(fps*2)===0}); fr.close(); k++;
         while(venc.encodeQueueSize>3) await sleep(4);
         if(k%15===0){ titleProgress(k/totalFrames); note.textContent=`Joining ${clips.length} videos… frame ${k} of ${totalFrames}`; $("vfdState").textContent=`EDIT ${Math.round(k/totalFrames*100)}%`; } }
-      URL.revokeObjectURL(c.v.src); }
+      URL.revokeObjectURL(c.v.src); try{ c.v.remove(); }catch(e){} }
     await venc.flush(); venc.close();
     if(aud){ note.textContent="Adding the sound…"; await encodeAudioInto(muxer,aud,0,ab.duration,null); }
     muxer.finalize();
