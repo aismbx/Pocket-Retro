@@ -315,6 +315,18 @@ body.finder-open{overflow:hidden}
 .svbox .fadebox{padding-bottom:4px}
 .lookpick select{background:var(--vfd-bg);color:var(--silk);border:1px solid var(--edge);border-radius:6px;padding:4px 6px;font:500 13px var(--f-body);max-width:100%}
 @media (min-width:980px) and (min-height:560px){ .stage #vbox>.fadebox{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:22px} .stage #vbox>.fadebox>.ghead,.stage #vbox>.fadebox>.fshape{grid-column:1/-1} }
+
+/* ---------- 1.8.3: Render/Save inside the video panel ---------- */
+#vbox>.acts.inpanel{order:0;margin:12px 0 2px}
+#vbox>#note.inpanel{order:0;text-align:left;padding:6px 0 2px;min-height:0}
+@media (min-width:980px) and (min-height:560px){
+  .stage #vbox>.acts.inpanel,.stage #vbox>#note.inpanel,.stage #vbox>.soundinfo{grid-column:1/-1}
+  .stage #vbox>.acts.inpanel{max-width:none;width:auto;margin-inline:0}
+}
+
+/* Make it a video: the same big buttons as Save photo / Add to roll */
+.svacts{margin:12px 0 4px}
+.svacts .save:not(.alt){flex:1}
 </style>
 
 <script>try{ if(localStorage.getItem("pretro-theme")==="light") document.documentElement.dataset.theme="light"; }catch(e){}</script>
@@ -370,7 +382,7 @@ body.finder-open{overflow:hidden}
 
   <details class="credits">
     <summary>Credits and license</summary>
-    <p>Pocket Retro is an unofficial personal app (version 1.8.2). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
+    <p>Pocket Retro is an unofficial personal app (version 1.8.3). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
     <pre>Copyright © valadaptive
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -456,7 +468,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     <div class="ctl"><label for="svLen">Video length</label><span class="val" id="svLenV">5.0 s</span><input type="range" id="svLen" min="1" max="60" step="0.5" value="5"></div>
     <div class="ctl"><span class="lbl">Frame rate</span><div class="seg" role="group" aria-label="Frame rate" id="svFps"><button data-f="12">12 fps</button><button data-f="15">15 fps</button><button data-f="24">24 fps</button><button data-f="30" aria-pressed="true">30 fps</button></div></div>
     <div class="desc vinfo" id="svInfo"></div>
-    <div class="btns"><button class="pbtn" id="svRender">Render video</button><button class="pbtn" id="svSave" hidden>Save video</button></div>
+    <div class="acts svacts"><button class="save" id="svSave" hidden>Save video</button><button class="save" id="svRender">Render video</button></div>
     <div class="prog" id="svProg" hidden><div class="bar"><i id="svBar"></i></div><div class="progrow"><span id="svTxt">Starting…</span><button class="link" id="svCancel">Cancel</button></div></div>
     <video id="svResult" controls playsinline loop hidden></video>
   </details>
@@ -1669,7 +1681,7 @@ function setSaveLabel(){
   const fresh=result && keyNow()===resultKey;
   $("saveBtn").textContent = kind==="video" ? (fresh?"Save video":"Render video") : kind==="audio" ? (fresh?"Save sound":"Render sound") : isSample?"Save sample photo":"Save photo";
   $("keepBtn").hidden = kind!=="image";
-  $("svBox").hidden = kind!=="image"; placeFades();
+  $("svBox").hidden = kind!=="image"; placeFades(); placeActs();
   $("liveBtns").hidden = kind!=="video";
   if(kind==="video") $("vInfo").textContent = `${Math.max(1,Math.round((V.end-V.start)*V.fps))} frames${M==="camera"?` at ${camType().vres.join("×")}`:""}. Each frame goes through the full effect, so expect roughly 2 to 5 frames a second.`;
   if(kind==="audio") $("vInfo").textContent = `Sound only · ${fmtT(V.end-V.start)} selected. The Audio tab controls how it sounds.`;
@@ -1895,14 +1907,15 @@ function mp4Kids(u8,s,e){ const dv=new DataView(u8.buffer,u8.byteOffset,u8.byteL
 const mp4Kid=(u8,b,t)=>b&&mp4Kids(u8,b.s,b.e).find(k=>k.type===t);
 async function mp4AudioReader(file){
   // 1. find the moov box at the top level (it can be at the start or the end of the file)
-  let off=0, moov=null; const size=file.size;
-  for(let guard=0; off+8<=size && guard<4000; guard++){
+  let off=0, moov=null; const size=file.size, moofs=[];
+  for(let guard=0; off+8<=size && guard<200000; guard++){
     const h=await fileBytes(file,off,Math.min(size,off+16)), dv=new DataView(h.buffer);
     let sz=dv.getUint32(0), hl=8; const type=String.fromCharCode(h[4],h[5],h[6],h[7]);
     if(guard===0 && type!=="ftyp" && type!=="wide" && type!=="mdat" && type!=="moov" && type!=="free" && type!=="skip") return {why:"not-mp4"};
     if(sz===1){ sz=Number(dv.getBigUint64(8)); hl=16; } else if(sz===0) sz=size-off;
     if(sz<hl) break;
-    if(type==="moov"){ if(sz>256*1048576) return {why:"not-mp4"}; moov=await fileBytes(file,off,off+sz); moov={u8:moov,box:{s:hl,e:sz}}; break; }
+    if(type==="moov"){ if(sz>256*1048576) return {why:"not-mp4"}; moov=await fileBytes(file,off,off+sz); moov={u8:moov,box:{s:hl,e:sz}}; }
+    else if(type==="moof" && sz<16*1048576 && moofs.length<100000){ moofs.push({u8:await fileBytes(file,off,off+sz),off,hl}); }
     off+=sz;
   }
   if(!moov) return {why:"not-mp4"};
@@ -1910,7 +1923,8 @@ async function mp4AudioReader(file){
   const mvhd=mp4Kid(u8,moov.box,"mvhd"); const movieTs=mvhd?(u8[mvhd.s]===1?dv.getUint32(mvhd.s+20):dv.getUint32(mvhd.s+12)):1000;
   const isSoun=trak=>{ const h=mp4Kid(u8,mp4Kid(u8,trak,"mdia"),"hdlr"); return !!h && String.fromCharCode(u8[h.s+8],u8[h.s+9],u8[h.s+10],u8[h.s+11])==="soun"; };
   const souns=mp4Kids(u8,moov.box.s,moov.box.e).filter(k=>k.type==="trak"&&isSoun(k));
-  let last={why:"no-audio"};
+  let last={why:"no-audio",none:!souns.length};
+  const trex={}; { const mvex=mp4Kid(u8,moov.box,"mvex"); if(mvex) for(const t of mp4Kids(u8,mvex.s,mvex.e)) if(t.type==="trex") trex[dv.getUint32(t.s+4)]={dur:dv.getUint32(t.s+12),size:dv.getUint32(t.s+16)}; }
   for(const trak of souns){ const r=await (async()=>{
     const mdia=mp4Kid(u8,trak,"mdia");
     const mdhd=mp4Kid(u8,mdia,"mdhd"), ts=u8[mdhd.s]===1?dv.getUint32(mdhd.s+20):dv.getUint32(mdhd.s+12);
@@ -1936,19 +1950,23 @@ async function mp4AudioReader(file){
     const tbl=t=>mp4Kid(u8,stbl,t);
     const stts=tbl("stts"), stsc=tbl("stsc"), stsz=tbl("stsz"), stco=tbl("stco"), co64=tbl("co64");
     if(!stts||!stsc||!stsz||!(stco||co64)) return {why:"codec",fmt};
-    const fixed=dv.getUint32(stsz.s+4), count=dv.getUint32(stsz.s+8);
-    const sizes=new Uint32Array(count); for(let i=0;i<count;i++) sizes[i]=fixed||dv.getUint32(stsz.s+12+i*4);
+    const fixed=dv.getUint32(stsz.s+4); let count=dv.getUint32(stsz.s+8);
+    let sizes=new Uint32Array(count); for(let i=0;i<count;i++) sizes[i]=fixed||dv.getUint32(stsz.s+12+i*4);
     const nChunks=stco?dv.getUint32(stco.s+4):dv.getUint32(co64.s+4), chunkOff=new Float64Array(nChunks);
     for(let i=0;i<nChunks;i++) chunkOff[i]=stco?dv.getUint32(stco.s+8+i*4):Number(dv.getBigUint64(co64.s+8+i*8));
-    const offs=new Float64Array(count), nsc=dv.getUint32(stsc.s+4); let si=0;
+    let offs=new Float64Array(count); const nsc=dv.getUint32(stsc.s+4); let si=0;
     for(let k=0;k<nsc;k++){ const first=dv.getUint32(stsc.s+8+k*12)-1, per=dv.getUint32(stsc.s+12+k*12), last=k+1<nsc?dv.getUint32(stsc.s+8+(k+1)*12)-1:nChunks;
       for(let c=first;c<last&&si<count;c++){ let o=chunkOff[c]; for(let j=0;j<per&&si<count;j++){ offs[si]=o; o+=sizes[si]; si++; } } }
+    let fr=null;
+    if(!count && moofs.length){ const tkhd=mp4Kid(u8,trak,"tkhd"), tid=tkhd?(u8[tkhd.s]===1?dv.getUint32(tkhd.s+20):dv.getUint32(tkhd.s+12)):0;
+      fr=fragTables(moofs,tid,trex[tid]||{}); count=fr.sizes.length; sizes=fr.sizes; offs=fr.offs; }
     // edit list: an empty edit delays the track; a media_time skips encoder priming
     let shift=0, mediaStart=0; const elst=mp4Kid(u8,mp4Kid(u8,trak,"edts"),"elst");
     if(elst){ const v=u8[elst.s], n=dv.getUint32(elst.s+4); let p=elst.s+8;
       for(let k=0;k<n;k++){ const segDur=v===1?Number(dv.getBigUint64(p)):dv.getUint32(p), mt=v===1?Number(dv.getBigInt64(p+8)):dv.getInt32(p+4); p+=v===1?20:12;
         if(mt===-1) shift+=segDur/movieTs; else { mediaStart=mt/ts; break; } } }
-    const pts=new Float64Array(count), durs=new Float64Array(count), ne=dv.getUint32(stts.s+4); let t=0, k2=0;
+    const pts=new Float64Array(count), durs=new Float64Array(count), ne=fr?0:dv.getUint32(stts.s+4); let t=0, k2=0;
+    if(fr) for(let i=0;i<count;i++){ pts[i]=fr.dts[i]/ts-mediaStart+shift; durs[i]=fr.dur[i]/ts; }
     for(let k=0;k<ne;k++){ const cnt=dv.getUint32(stts.s+8+k*8), dl=dv.getUint32(stts.s+12+k*8); for(let j=0;j<cnt&&k2<count;j++){ pts[k2]=t/ts-mediaStart+shift; durs[k2]=dl/ts; t+=dl; k2++; } }
     if(!count) return {why:"no-audio"};
     // find the decoded sample rate and channel count (HE-AAC doubles the rate) by decoding the first few frames
@@ -1984,6 +2002,26 @@ async function mp4AudioReader(file){
   })(); if(r.reader) return r; last=r; }
   return last;
 }
+/* sample tables for one track from fragmented MP4 (moof > traf > tfhd/tfdt/trun) */
+function fragTables(moofs,tid,def){
+  const sizes=[], offs=[], dts=[], dur=[]; let next=0;
+  for(const m of moofs){ const u=m.u8, v=new DataView(u.buffer,u.byteOffset,u.byteLength);
+    for(const traf of mp4Kids(u,m.hl,u.length).filter(k=>k.type==="traf")){
+      const tfhd=mp4Kid(u,traf,"tfhd"); if(!tfhd) continue;
+      const fl=(u[tfhd.s+1]<<16)|(u[tfhd.s+2]<<8)|u[tfhd.s+3]; if(v.getUint32(tfhd.s+4)!==tid) continue;
+      let p=tfhd.s+8, base=m.off, dDur=def.dur||0, dSize=def.size||0;
+      if(fl&1){ base=Number(v.getBigUint64(p)); p+=8; } if(fl&2) p+=4; if(fl&8){ dDur=v.getUint32(p); p+=4; } if(fl&0x10){ dSize=v.getUint32(p); p+=4; }
+      const tfdt=mp4Kid(u,traf,"tfdt"); if(tfdt) next=u[tfdt.s]===1?Number(v.getBigUint64(tfdt.s+4)):v.getUint32(tfdt.s+4);
+      let end=base;
+      for(const trun of mp4Kids(u,traf.s,traf.e).filter(k=>k.type==="trun")){
+        const tf=(u[trun.s+1]<<16)|(u[trun.s+2]<<8)|u[trun.s+3], n=v.getUint32(trun.s+4); let q=trun.s+8, o=end;
+        if(tf&1){ o=base+v.getInt32(q); q+=4; } if(tf&4) q+=4;
+        for(let i=0;i<n;i++){ let d=dDur, z=dSize;
+          if(tf&0x100){ d=v.getUint32(q); q+=4; } if(tf&0x200){ z=v.getUint32(q); q+=4; } if(tf&0x400) q+=4; if(tf&0x800) q+=4;
+          offs.push(o); sizes.push(z); dts.push(next); dur.push(d); o+=z; next+=d; }
+        end=o; } } }
+  return {sizes:Uint32Array.from(sizes),offs:Float64Array.from(offs),dts:Float64Array.from(dts),dur:Float64Array.from(dur)};
+}
 /* AudioSpecificConfig -> object type, sample rate, channels */
 function ascInfo(a){ if(!a||a.length<2) return null; let bit=0;
   const rd=n=>{ let v=0; for(let i=0;i<n;i++){ v=(v<<1)|((a[bit>>3]>>(7-(bit&7)))&1); bit++; } return v; };
@@ -1996,7 +2034,7 @@ async function openAudioReader(file){
   let r={why:"not-mp4"};
   try{ r=await mp4AudioReader(file); }catch(e){ r={why:"not-mp4"}; }
   if(r.reader) return r;
-  if(r.why==="no-audio") return r;
+  if(r.why==="no-audio" && r.none) return r;
   if(file.size>DECODE_ALL_LIMIT) return {why:r.why==="codec"?"codec":"too-big",fmt:r.fmt};
   const buf=await getDecoded(); if(buf) return {reader:bufReader(buf,Math.min(2,buf.numberOfChannels))};
   return {why:r.why==="codec"?"codec":"no-audio",fmt:r.fmt};
@@ -2729,6 +2767,20 @@ document.addEventListener("visibilitychange",()=>{ if(document.hidden) return; c
   if(rendering) document.title=BASE_TITLE; else titleT=setTimeout(()=>{ document.title=BASE_TITLE; },4000); });
 { const _progress=progress; progress=function(done,total,t0){ _progress(done,total,t0); titleProgress(total?done/total:0); }; }
 
+/* ================= keep Render/Save next to the progress bar and the finished video ================= */
+let actsHome=null;
+function placeActs(){
+  const acts=$("saveBtn").parentNode, note=$("note"), vb=$("vbox"), at=$("soundInfo");
+  if(!actsHome){ actsHome=document.createComment("acts home"); acts.parentNode.insertBefore(actsHome,acts); }
+  if(kind==="video"||kind==="audio"){
+    if(acts.parentNode!==vb){ vb.insertBefore(acts,at); vb.insertBefore(note,at); }
+    acts.classList.add("inpanel"); note.classList.add("inpanel");
+  } else if(acts.parentNode===vb){
+    actsHome.parentNode.insertBefore(note,actsHome.nextSibling); actsHome.parentNode.insertBefore(acts,actsHome.nextSibling);
+    acts.classList.remove("inpanel"); note.classList.remove("inpanel");
+  }
+}
+
 /* ================= fades UI (moves into the video panel or the photo-video panel) ================= */
 const fmtFade=v=>v>0?v.toFixed(1)+" s":"Off";
 function syncFades(){
@@ -2751,7 +2803,7 @@ $("fShape").addEventListener("click",e=>{ const b=e.target.closest("button"); if
 
 /* ================= make a video from a photo ================= */
 const SV={len:5,fps:30}; let still=null;
-function clearStill(){ if(still&&still.url) URL.revokeObjectURL(still.url); still=null; $("svResult").hidden=true; $("svResult").removeAttribute("src"); $("svSave").hidden=true; }
+function clearStill(){ if(still&&still.url) URL.revokeObjectURL(still.url); still=null; $("svResult").hidden=true; $("svResult").removeAttribute("src"); $("svSave").hidden=true; $("svRender").className="save"; $("svRender").textContent="Render video"; }
 $("svLen").addEventListener("input",e=>{ SV.len=+e.target.value; $("svLenV").textContent=SV.len.toFixed(1)+" s"; svInfo(); });
 $("svFps").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; SV.fps=+b.dataset.f; $("svFps").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); svInfo(); });
 function svInfo(){ $("svInfo").textContent=`${Math.round(SV.len*SV.fps)} frames. The noise, snow and tape wobble change every frame, so the photo comes to life. The video is silent.`; }
@@ -2788,7 +2840,7 @@ $("svRender").onclick=async()=>{
     await venc.flush(); venc.close();
     if(svCancel){ $("note").textContent="Render cancelled."; }
     else { muxer.finalize(); const blob=new Blob([muxer.target.buffer],{type:"video/mp4"});
-      still={blob,url:URL.createObjectURL(blob)}; $("svResult").src=still.url; $("svResult").hidden=false; $("svSave").hidden=false;
+      still={blob,url:URL.createObjectURL(blob)}; $("svResult").src=still.url; $("svResult").hidden=false; $("svSave").hidden=false; $("svRender").className="save alt"; $("svRender").textContent="Render again";
       await addToRoll({type:"video",blob,thumb,ext:"mp4"});
       $("note").textContent=`Video ready: ${SV.len.toFixed(1)} seconds, ${(blob.size/1048576).toFixed(1)} MB, and added to your roll.`; }
   }catch(e){ $("note").textContent = e&&e.message==="size" ? "This device can't encode a video that size. Try fewer scan lines, no CRT look or a smaller export size." : "The video couldn't be made on this device. Try a shorter length or a lower frame rate."; }
