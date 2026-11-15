@@ -193,6 +193,19 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 .fshut.vid::after{content:"";display:block;width:26px;height:26px;margin:auto;border-radius:50%;background:var(--rec)}
 .fshut.recording::after{border-radius:5px;width:24px;height:24px}
 body.finder-open{overflow:hidden}
+/* landscape phones: picture on the left, controls in a column on the right, like the iPhone camera */
+@media (orientation:landscape) and (max-height:600px){
+  .finder{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr) auto;
+    grid-template-areas:"cam modes" "cam bar" "msg bar";gap:6px 18px;align-items:center;justify-items:center;
+    padding:max(10px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+  .finder canvas{grid-area:cam;width:100%;height:100%;max-height:none;min-height:0;background:transparent;border-radius:0}
+  .fmsg{grid-area:msg;font-size:12px;min-height:0}
+  .fmodes{grid-area:modes;flex-direction:column;gap:6px}
+  .fmodes .fbtn{padding:8px 12px;min-width:84px}
+  .fbar{grid-area:bar;flex-direction:column;justify-content:center;gap:14px;width:auto;max-width:none;align-self:stretch}
+  .fbar .fbtn{min-width:84px}
+  .fshut{width:66px;height:66px}
+}
 .ck{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--silk);padding:4px 0}
 .ck input{width:18px;height:18px;accent-color:var(--tape)}
 .lefthint{text-align:left!important;margin-top:8px}
@@ -327,6 +340,29 @@ body.finder-open{overflow:hidden}
 /* Make it a video: the same big buttons as Save photo / Add to roll */
 .svacts{margin:12px 0 4px}
 .svacts .save:not(.alt){flex:1}
+
+/* ---------- landscape phones: keep the whole preview and the page bottom on screen ---------- */
+@media (orientation:landscape) and (max-height:600px) and (max-width:979px), (orientation:landscape) and (max-height:559px){
+  body{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+  .bezel .screen{height:min(calc(100vh - 150px),calc((100vw - 64px) * 3 / 4));width:auto;max-width:100%;margin:0 auto}
+}
+
+/* ---------- 1.9.0: speed read-out in Credits ---------- */
+.speedinfo{font-variant-numeric:tabular-nums}
+.credits .ck{font-size:12px;color:var(--silk-dim);padding:0 0 6px}
+
+/* ---------- 1.10.0: text and date boxes in the settings ---------- */
+.ctl input.line{grid-column:1/-1;width:100%;min-width:0;box-sizing:border-box;background:var(--vfd-bg);border:1px solid var(--edge);border-radius:8px;padding:8px 10px;color:var(--silk);font:18px var(--f-osd);min-height:40px;color-scheme:dark}
+:root[data-theme="light"] .ctl input.line{background:#fbf9f5;color-scheme:light}
+.ctl input.line:focus-visible{outline:2px solid var(--tape);outline-offset:1px}
+
+/* ---------- 1.10.0: on phones held upright, the preview stays at the top of the screen while you scroll the settings ---------- */
+@media (max-width:979px) and (orientation:portrait){
+  body:not(.finder-open) .bezel{position:sticky;top:0;z-index:30;margin:0 -16px;padding:8px 8px 6px;padding-top:max(8px,env(safe-area-inset-top,0px));border-radius:0 0 16px 16px}
+  body:not(.finder-open) .bezel .screen{height:min(36vh,calc((100vw - 16px) * 3 / 4));width:auto;max-width:100%;margin:0 auto}
+  body:not(.finder-open) .bezel .lefthint{display:none}
+  body:not(.finder-open) .bezel .hintrow{margin-top:6px}
+}
 </style>
 
 <script>try{ if(localStorage.getItem("pretro-theme")==="light") document.documentElement.dataset.theme="light"; }catch(e){}</script>
@@ -382,7 +418,7 @@ body.finder-open{overflow:hidden}
 
   <details class="credits">
     <summary>Credits and license</summary>
-    <p>Pocket Retro is an unofficial personal app (version 1.8.3). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
+    <p>Pocket Retro is an unofficial personal app (version 1.10.0). Its Tape effect engine is a JavaScript port of the core effect from <a href="https://github.com/valadaptive/ntsc-rs" target="_blank" rel="noopener">ntsc-rs</a> by valadaptive, which is itself based on ntscqt, ntsc and composite-video-simulator. The port follows the original's filters and settings, but noise patterns and some details differ. TV rating icons are the US TV Parental Guidelines marks you supplied.</p>
     <pre>Copyright © valadaptive
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -390,6 +426,8 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</pre>
+    <p class="speedinfo" id="speedInfo" role="status"></p>
+    <label class="ck"><input type="checkbox" id="gpuOn" checked> Use the graphics chip for the Tape effect when it's faster</label>
     <p>Your photos, videos and sounds are edited on your device and are not uploaded.</p>
   </details>
   </div>
@@ -713,7 +751,7 @@ function apply(px,W,H,S,size,frame){
       for(let k=0;k<W*4;k++) px[o+k]=(px[oa+k]+px[ob+k])/2; } void keep; }
   return px;
 }
-G.NTSC={apply};
+G.NTSC={apply,_x:{lowpass,lowpassFor,notch,withScale,Rng,simplex1,fbm2,speckles,SEED,clampI,NTSC_RATE}};
 })(self);
 
 /* Camera (low-res digicam) and CRT screen engines for Pocket Retro. */
@@ -800,6 +838,434 @@ G.CAM={apply:camApply}; G.CRT={apply:crtApply};
 })(self);
 
 </script>
+<script>
+/* Tape effect on the graphics chip (WebGL2). Same maths as the ntsc-rs port in the worker engine, pass by pass:
+   - every recursive (IIR) filter becomes an equivalent FIR filter, made by measuring the original filter's own impulse
+     response, with the same edge rules (zero or held start, held end, delays);
+   - the simplex noise uses the same integer hash on the GPU, and its per-line seeds come from the same random
+     number generator on the CPU;
+   - snow speckles are sparse and sequential, so they are drawn by the original CPU code into a small layer.
+   If anything is unsupported or fails, apply() returns null and the caller uses the worker engine instead. */
+(function(G){
+"use strict";
+const X=G.NTSC&&G.NTSC._x; if(!X){ G.GPUTAPE=null; return; }
+const {lowpass,lowpassFor,notch,withScale,Rng,simplex1,fbm2,speckles,SEED,clampI,NTSC_RATE}=X;
+const KMAX=1024, TOL=2e-4, FRAC_1_SQRT_2=Math.SQRT1_2;
+
+/* ---------- IIR -> FIR ---------- */
+function runTF(tf,x){ const {num,den,len}=tf, z=new Float64Array(len), L=len-1, y=new Float64Array(x.length);
+  for(let i=0;i<x.length;i++){ const s=x[i], v=z[0]+num[0]*s; for(let k=0;k<L;k++) z[k]=z[k+1]+num[k+1]*s-den[k]*v; y[i]=v; } return y; }
+function impulse(tfs){ if(!tfs.length) return [1];
+  let h=new Float64Array(KMAX*2); h[0]=1; for(const tf of tfs) h=runTF(tf,h);
+  let tail=0, n=h.length; while(n>1 && tail+Math.abs(h[n-1])<TOL){ tail+=Math.abs(h[n-1]); n--; }
+  if(n>KMAX || !isFinite(tail)) return null; return Array.from(h.subarray(0,n)); }
+const DELTA={h:[1],delay:0,left:"zero"};
+const ch=(tfs,delay,left)=>{ const h=impulse(tfs); return h?{h,delay:delay|0,left:left||"zero"}:null; };
+
+/* ---------- shaders ---------- */
+const VS=`#version 300 es
+void main(){ vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2)); gl_Position=vec4(p*2.0-1.0,0.0,1.0); }`;
+const HEAD=`#version 300 es
+precision highp float; precision highp int; precision highp sampler2D;
+out vec4 o;
+uint h32(uint x){ x^=x>>16; x*=0x7feb352du; x^=x>>15; x*=0x846ca68bu; x^=x>>16; return x; }
+float grad1(uint h){ float v=float(((h>>28)&7u)+1u); return (h&0x80000000u)!=0u?-v:v; }
+float simplex1(float x,uint seed){ float fi=floor(x); int i=int(fi); float x0=x-fi, x1=x0-1.0;
+  float g0=grad1(h32(uint(i)^seed)), g1=grad1(h32(uint(i+1)^seed));
+  float t0=1.0-x0*x0; t0*=t0; t0*=t0; float t1=1.0-x1*x1; t1*=t1; t1*=t1; return t0*g0*x0+t1*g1*x1; }
+float fbm1(float x,uint seed,int oct,float freq){ x*=freq; float r=simplex1(x,seed); for(int k=1;k<oct;k++){ x*=2.0; r+=simplex1(x,seed); } return r; }
+float rowNoise(sampler2D rowT,int col,int row,int px,int oct,float freq){ vec4 t=texelFetch(rowT,ivec2(col,row),0);
+  uint seed=uint(t.g)|(uint(t.b)<<16); return fbm1(t.r+float(px),seed,oct,freq); }
+`;
+const FS={
+conv:HEAD+`uniform sampler2D uSrc; uniform int uStart,uStep; uniform float uFade;
+void main(){ ivec2 P=ivec2(gl_FragCoord.xy); vec3 c=texelFetch(uSrc,ivec2(P.x,P.y*uStep+uStart),0).rgb;
+  if(uFade<1.0){ vec3 x=floor(c*255.0+0.5)*uFade, r=floor(x+0.5); r-=vec3(equal(fract(x),vec3(0.5)))*mod(r,2.0); c=r/255.0; }   /* bytes times the fade, rounded the way the processor path rounds (ties to even) */
+  o=vec4(0.299*c.r+0.587*c.g+0.114*c.b, 0.5959*c.r-0.2746*c.g-0.3213*c.b, 0.2115*c.r-0.5227*c.g+0.3112*c.b, 0.0); }`,
+fir:HEAD+`uniform sampler2D uSrc,uRow,uLay;
+#ifdef KTEX
+uniform sampler2D uK;
+#define KW(j) texelFetch(uK,ivec2(j,0),0).rgb
+#else
+uniform vec3 uKa[120];
+#define KW(j) uKa[j]
+#endif
+uniform ivec2 uSize; uniform int uN,uD,uPre,uFrame,uAlpha,uLayOn;
+uniform vec3 uLClamp,uLConst; uniform bool uMod,uRot;
+uniform ivec3 uNY; uniform vec2 uNYp; uniform ivec2 uNC; uniform vec2 uNCp;
+void main(){ ivec2 P=ivec2(gl_FragCoord.xy); int W=uSize.x; vec3 acc=vec3(0.0);
+  float m0=1.0, m1=1.0; bool blend=(uPre&2)!=0 && P.y>0;
+  if((uPre&1)!=0){ m0=texelFetch(uRow,ivec2(6,P.y),0).g; if(P.y>0) m1=texelFetch(uRow,ivec2(6,P.y-1),0).g; }
+  for(int j=0;j<uN;j++){ int t=P.x-(j-uD); int tc=clamp(t,0,W-1);
+    vec3 v=texelFetch(uSrc,ivec2(tc,P.y),0).rgb; v.yz*=m0;
+    if((uPre&2)!=0){ vec2 u=vec2(0.0); if(blend) u=texelFetch(uSrc,ivec2(tc,P.y-1),0).gb*m1; v.yz=(v.yz+u)*0.5; }
+    if(t<0) v=v*uLClamp+uLConst;
+    acc+=KW(j)*v; }
+  vec4 c=texelFetch(uSrc,P,0);
+  if(uMod){ int ph=(P.x+((uFrame+(P.y<<1))&2))&3; float im=ph==0?1.0:(ph==2?-1.0:0.0), qm=ph==1?1.0:(ph==3?-1.0:0.0); acc.x+=acc.y*im+acc.z*qm; }
+  if(uNY.x!=0) acc.x+=rowNoise(uRow,uNY.y,P.y,P.x,uNY.z,uNYp.x)*uNYp.y;
+  if(uLayOn!=0) acc.x+=texelFetch(uLay,P,0).r;
+  if(uNC.x!=0){ acc.y+=rowNoise(uRow,2,P.y,P.x,uNC.y,uNCp.x)*uNCp.y; acc.z+=rowNoise(uRow,3,P.y,P.x,uNC.y,uNCp.x)*uNCp.y; }
+  if(uRot){ float a=texelFetch(uRow,ivec2(6,P.y),0).r, s=sin(a), k=cos(a); acc.yz=vec2(acc.y*k-acc.z*s, acc.y*s+acc.z*k); }
+  o=vec4(acc, uAlpha==1?c.r:c.a); }`,
+shift:HEAD+`uniform sampler2D uSrc,uRow,uLay; uniform ivec2 uSize; uniform int uLayOn; uniform float uCs,uTi,uTl,uTFreq;
+int W; int row; float hshift; int hflag;
+float src(int x){ return (x>=0&&x<W)?texelFetch(uSrc,ivec2(x,row),0).r:0.0; }
+float shifted(int i,float sh){ int si=int(trunc(sh))-(sh<0.0?1:0); float fr=sh-float(si); int l=i-si-1; return src(l)*fr+src(l+1)*(1.0-fr); }
+float s1(int i){ if(i<0||i>=W) return 0.0; if(hflag==0) return src(i); if(hflag==1) return shifted(i,hshift);
+  float fi=float(i); if(fi<uCs) return src(i); float v=shifted(i,hshift);
+  if(fi<uCs+ceil(uTl)){ float q=1.0-(fi-uCs)/uTl; v+=q*q*q*uTi; } return v; }
+void main(){ ivec2 P=ivec2(gl_FragCoord.xy); W=uSize.x; row=P.y; vec4 c=texelFetch(uSrc,P,0);
+  vec4 s=texelFetch(uRow,ivec2(5,row),0); hshift=s.r; hflag=int(s.a); float y;
+  vec4 m=texelFetch(uRow,ivec2(6,row),0);
+  if(m.b!=0.0){ float sh=s.g; int si=int(trunc(sh))-(sh<0.0?1:0); float fr=sh-float(si); int l=P.x-si-1; y=s1(l)*fr+s1(l+1)*(1.0-fr);
+    vec4 t=texelFetch(uRow,ivec2(4,row),0); uint seed=uint(t.g)|(uint(t.b)<<16); y+=fbm1(t.r+float(P.x),seed,1,uTFreq)*t.a;
+    if(uLayOn!=0) y+=texelFetch(uLay,P,0).r;
+  } else y=s1(P.x);
+  o=vec4(y,c.gba); }`,
+cdelay:HEAD+`uniform sampler2D uSrc; uniform ivec2 uSize; uniform int uDv; uniform float uDh;
+vec2 V(int x,int r){ int sr=r-uDv; return (x>=0&&x<uSize.x&&sr>=0&&sr<uSize.y)?texelFetch(uSrc,ivec2(x,sr),0).gb:vec2(0.0); }
+void main(){ ivec2 P=ivec2(gl_FragCoord.xy); vec4 c=texelFetch(uSrc,P,0); vec2 iq;
+  if(uDh!=0.0){ int si=int(trunc(uDh))-(uDh<0.0?1:0); float fr=uDh-float(si); int l=P.x-si-1; iq=V(l,P.y)*fr+V(l+1,P.y)*(1.0-fr); } else iq=V(P.x,P.y);
+  o=vec4(c.r,iq,c.a); }`,
+edge:HEAD+`uniform sampler2D uSrc,uRow; uniform ivec2 uSize;
+void main(){ ivec2 P=ivec2(gl_FragCoord.xy); int W=uSize.x; float sh=texelFetch(uRow,ivec2(5,P.y),0).b;
+  int si=int(trunc(sh))-(sh<0.0?1:0); float fr=sh-float(si); int l=P.x-si-1, r=l+1;
+  vec3 bv=texelFetch(uSrc,ivec2(si>=0?0:W-1,P.y),0).rgb;
+  vec3 a=(l>=0&&l<W)?texelFetch(uSrc,ivec2(l,P.y),0).rgb:bv, b=(r>=0&&r<W)?texelFetch(uSrc,ivec2(r,P.y),0).rgb:bv;
+  o=vec4(a*fr+b*(1.0-fr),texelFetch(uSrc,P,0).a); }`,
+demod1:HEAD+`uniform sampler2D uSrc; uniform ivec2 uSize; uniform int uMode;
+float M(int x,int y){ return texelFetch(uSrc,ivec2(x,y),0).r; }
+void main(){ ivec2 P=ivec2(gl_FragCoord.xy); int W=uSize.x,H=uSize.y,x=P.x,r=P.y; float c=M(x,r), y;
+  int po=r==0?1:r-1, no=r==H-1?H-2:r+1;
+  if(uMode==1){ float a=x>0?M(x-1,r):16.0/255.0; y=(a+c+M(min(x+1,W-1),r)+M(min(x+2,W-1),r))*0.25; }
+  else if(uMode==2){ y=(M(x,po)+c)*0.5; }
+  else if(uMode==3){ y=c*0.5+M(x,po)*0.25+M(x,no)*0.25; }
+  else { int xp=x<2?x+2:x-2, xn=x>W-3?x-2:x+2;
+    float tl=M(xp,po),t=M(x,po),tr=M(xn,po),l=M(xp,r),rr=M(xn,r),bl=M(xp,no),b=M(x,no),br=M(xn,no);
+    if(uMode==4){ const float WD=0.0625; y=c*(0.5+2.0*(WD*2.0))+((l+rr)+(t+b))*0.125-((tl+tr)+(bl+br))*WD; }
+    else { const float TH=1e-3, DL=2.0, SQ2=1.4142135623730951;
+      float gx=(tr-tl)+(rr-l)+(br-bl), gy=(bl-tl)+(b-t)+(br-tr);
+      float gxt=gx/TH, gyt=gy/TH, g1=(gx+gy)/(TH*SQ2), g2=(gx-gy)/(TH*SQ2);
+      float ax=1.0/(1.0+gxt*gxt), ay=1.0/(1.0+gyt*gyt), nrm=0.25/(ax+ay), wx=ax*nrm, wy=ay*nrm;
+      float lim=DL/(TH*TH), wd1=nrm/max(1.0+g1*g1,lim), wd2=nrm/max(1.0+g2*g2,lim);
+      y=c*(0.5+2.0*(wd1+wd2))+((l+rr)*wx+(t+b)*wy)-((tl+br)*wd1+(tr+bl)*wd2); } }
+  o=vec4(y,0.0,0.0,c); }`,
+demod2:HEAD+`uniform sampler2D uSrc; uniform ivec2 uSize; uniform int uFrame;
+float C(int x,int y){ vec4 t=texelFetch(uSrc,ivec2(x,y),0); return t.r-t.a; }
+void main(){ ivec2 P=ivec2(gl_FragCoord.xy); int W=uSize.x,x=P.x; int xi=(uFrame+(P.y<<1))&2;
+  float c=C(x,P.y); int ph=(x+xi)&3; float iv=c*(ph==0?-1.0:(ph==2?1.0:0.0)), qv=c*(ph==1?-1.0:(ph==3?1.0:0.0));
+  if(x<W-1){ float cr=C(x+1,P.y); int p2=(x+1+xi)&3; iv+=cr*(p2==0?-1.0:(p2==2?1.0:0.0))*0.5; qv+=cr*(p2==1?-1.0:(p2==3?1.0:0.0))*0.5; }
+  if(x>0){ float cl=C(x-1,P.y); int p2=(x-1+xi)&3; iv+=cl*(p2==0?-1.0:(p2==2?1.0:0.0))*0.5; qv+=cl*(p2==1?-1.0:(p2==3?1.0:0.0))*0.5; }
+  o=vec4(texelFetch(uSrc,P,0).r,iv,qv,0.0); }`,
+out:HEAD+`uniform sampler2D uA,uB; uniform int uMode,uParA,uFlip,uH,uBob;
+vec3 rgbAt(int x,int row){ vec3 c; if(uMode==0) c=texelFetch(uA,ivec2(x,row),0).rgb; else { ivec2 q=ivec2(x,row>>1); c=((row&1)==uParA)?texelFetch(uA,q,0).rgb:texelFetch(uB,q,0).rgb; }
+  return vec3(c.r+0.956*c.g+0.619*c.b, c.r-0.272*c.g-0.647*c.b, c.r-1.106*c.g+1.703*c.b); }
+vec3 q8(vec3 v){ return floor(clamp(v,0.0,1.0)*255.0+0.5)/255.0; }
+void main(){ ivec2 P=ivec2(gl_FragCoord.xy); int row=uFlip!=0?uH-1-P.y:P.y; vec3 c;
+  if(uBob>=0 && (row&1)==uBob){ int a=row-1>=0?row-1:row+1, b=row+1<uH?row+1:row-1; c=(q8(rgbAt(P.x,a))+q8(rgbAt(P.x,b)))*0.5; } else c=rgbAt(P.x,row);
+  o=vec4(c,1.0); }`
+};
+
+/* ---------- WebGL plumbing ---------- */
+let gl=null, cv=null, PR={}, FT=null, FT32=null, FT16=null, wantHalf=false, dead=false, info={ok:false,why:"not started"};
+let pool=[], poolW=0, poolH=0, outTex=null, outFbo=null, outW=0, outH=0, srcTex=null, rowTex=null, layTex=[null,null];
+const kcache=new Map(); let taps=[];
+function compile(src,type){ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error("shader: "+gl.getShaderInfoLog(s)); return s; }
+function program(fs){ const p=gl.createProgram(); gl.attachShader(p,compile(VS,gl.VERTEX_SHADER)); gl.attachShader(p,compile(fs,gl.FRAGMENT_SHADER)); gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error("link: "+gl.getProgramInfoLog(p));
+  const u={}, n=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS); for(let i=0;i<n;i++){ const a=gl.getActiveUniform(p,i); u[a.name]=gl.getUniformLocation(p,a.name); } return {p,u}; }
+function tex(){ const t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE); return t; }
+function target(w,h,ifmt,fmt,type){ const t=tex(); gl.texImage2D(gl.TEXTURE_2D,0,ifmt,w,h,0,fmt,type,null);
+  const f=gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER,f); gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0);
+  if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)!==gl.FRAMEBUFFER_COMPLETE) throw new Error("framebuffer"); return {t,f}; }
+function init(force,half){
+  cv=document.createElement("canvas"); cv.width=cv.height=4;
+  const opt={antialias:false,depth:false,stencil:false,alpha:false,premultipliedAlpha:false,preserveDrawingBuffer:true,powerPreference:"high-performance",failIfMajorPerformanceCaveat:!force};
+  gl=cv.getContext("webgl2",opt); if(!gl) throw new Error("no fast WebGL2");
+  let renderer=""; try{ const d=gl.getExtension("WEBGL_debug_renderer_info"); if(d) renderer=String(gl.getParameter(d.UNMASKED_RENDERER_WEBGL)||""); }catch(e){}
+  if(!force && /swiftshader|llvmpipe|software|basic render/i.test(renderer)) throw new Error("software renderer");
+  /* working precision: 32-bit float targets where the chip can render to them, 16-bit otherwise (or when it is clearly faster) */
+  const cbf=gl.getExtension("EXT_color_buffer_float"), cbh=gl.getExtension("EXT_color_buffer_half_float");
+  const tryFT=(ifmt,type,name)=>{ try{ const t=target(4,4,ifmt,gl.RGBA,type); gl.deleteFramebuffer(t.f); gl.deleteTexture(t.t); return {ifmt,type,name}; }catch(e){ return null; } };
+  FT32=cbf?tryFT(gl.RGBA32F,gl.FLOAT,"32-bit"):null; FT16=(cbf||cbh)?tryFT(gl.RGBA16F,gl.HALF_FLOAT,"16-bit"):null;
+  if(half) wantHalf=true;
+  FT=(wantHalf?FT16:FT32)||FT32||FT16; if(!FT) throw new Error("no float targets");
+  for(const k in FS) PR[k]=program(FS[k]);
+  PR.firT=program(FS.fir.replace("precision highp float;","#define KTEX\nprecision highp float;"));
+  srcTex=tex(); rowTex=tex(); layTex=[tex(),tex()]; pool=[]; poolW=poolH=0; outTex=null; outW=outH=0; kcache.clear();
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false); gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL,gl.NONE);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT,1); gl.pixelStorei(gl.PACK_ALIGNMENT,1); gl.disable(gl.BLEND); gl.disable(gl.DEPTH_TEST); gl.disable(gl.DITHER);
+  cv.addEventListener("webglcontextlost",e=>{ e.preventDefault(); dead=true; gl=null; },false);
+  info={ok:true,renderer,precision:FT.name,why:""};
+}
+function sizeTargets(W,Hf,H){
+  if(W!==poolW || Hf>poolH){ for(const t of pool){ gl.deleteFramebuffer(t.f); gl.deleteTexture(t.t); } pool=[]; poolW=W; poolH=Hf; for(let i=0;i<3;i++) pool.push(target(W,Hf,FT.ifmt,gl.RGBA,FT.type)); }
+  if(W!==outW || H!==outH){ if(outTex){ gl.deleteFramebuffer(outFbo); gl.deleteTexture(outTex); } const t=target(W,H,gl.RGBA8,gl.RGBA,gl.UNSIGNED_BYTE); outTex=t.t; outFbo=t.f; outW=W; outH=H; }
+}
+function kernelTex(key,chs){ /* chs: [Y,I,Q] channel filters -> one RGB kernel texture with the delays baked in */
+  let k=kcache.get(key); if(k) return k; if(kcache.size>48){ for(const v of kcache.values()) if(v.t) gl.deleteTexture(v.t); kcache.clear(); }
+  const D=Math.max(chs[0].delay,chs[1].delay,chs[2].delay); let N=1; for(const c of chs) N=Math.max(N,D-c.delay+c.h.length);
+  const data=new Float32Array(N*4); chs.forEach((c,ci)=>{ const j0=D-c.delay; for(let i=0;i<c.h.length;i++) data[(j0+i)*4+ci]=c.h[i]; });
+  let t=null, arr=null;
+  if(N<=120){ arr=new Float32Array(N*3); for(let i=0;i<N;i++){ arr[i*3]=data[i*4]; arr[i*3+1]=data[i*4+1]; arr[i*3+2]=data[i*4+2]; } }
+  else { t=tex(); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA32F,N,1,0,gl.RGBA,gl.FLOAT,data); }
+  k={t,arr,N,D,lc:chs.map(c=>c.left==="clamp"?1:0),lk:chs.map(c=>c.left==="const"?16/255:0)}; kcache.set(key,k); return k; }
+function bind(unit,t){ gl.activeTexture(gl.TEXTURE0+unit); gl.bindTexture(gl.TEXTURE_2D,t); }
+function draw(pr,dst,W,H){ gl.bindFramebuffer(gl.FRAMEBUFFER,dst); gl.viewport(0,0,W,H); gl.drawArrays(gl.TRIANGLES,0,3); }
+
+/* ---------- one field ---------- */
+let rowBuf=new Float32Array(0), layBuf=[new Float32Array(0),new Float32Array(0)];
+function field(S,W,Hf,H,start,step,frame,hs,vs,slots,fade){
+  const seed=S.seed>>>0, ft=S.filterType, rate=NTSC_RATE*hs, R=k=>new Rng(seed).mix(k).mix(frame);
+  let cur=slots[0], nxt=slots[1]; const swap=()=>{ const t=cur; cur=nxt; nxt=t; };
+  const use=(name)=>{ const pr=PR[name]; gl.useProgram(pr.p); if(pr.u.uSize) gl.uniform2i(pr.u.uSize,W,Hf); bind(0,pool[cur].t); if(pr.u.uSrc) gl.uniform1i(pr.u.uSrc,0); if(pr.u.uRow){ bind(2,rowTex); gl.uniform1i(pr.u.uRow,2); } return pr.u; };
+  const done=(name)=>{ draw(PR[name],pool[nxt].f,W,Hf); swap(); };
+
+  /* per-row data: 7 texels a row. 0-3 noise (offset, seed lo, seed hi) for composite/luma/chroma I/chroma Q; 4 tracking noise (+ strength);
+     5 shifts (head, tracking, edge, head flag); 6 (chroma phase angle, chroma kept, tracking flag) */
+  const RN=7*4; if(rowBuf.length<RN*Hf) rowBuf=new Float32Array(RN*Hf); const rd=rowBuf; rd.fill(0,0,RN*Hf);
+  const setNoise=(col,rng,row,index)=>{ const r=rng.mix(index), sd=r.i32()>>>0, o=row*RN+col*4; rd[o]=r.f()*W; rd[o+1]=sd&0xffff; rd[o+2]=sd>>>16; };
+  const cn=S.compositeNoise, ln=S.lumaNoise, hn=S.chromaNoise;
+  if(cn.on){ const rng=R(SEED.COMPOSITE); for(let r=0;r<Hf;r++) setNoise(0,rng,r,r); }
+  if(ln.on){ const rng=R(SEED.LUMA); for(let r=0;r<Hf;r++) setNoise(1,rng,r,r); }
+  if(hn.on){ const ri=R(SEED.CHROMA_I), rq=R(SEED.CHROMA_Q); for(let r=0;r<Hf;r++){ setNoise(2,ri,r,r); setNoise(3,rq,r,r); } }
+  for(let r=0;r<Hf;r++) rd[r*RN+25]=1;
+  const lay=(i)=>{ if(layBuf[i].length<W*Hf) layBuf[i]=new Float32Array(W*Hf); layBuf[i].fill(0,0,W*Hf); return layBuf[i]; };
+  const upLay=(i)=>{ bind(3,layTex[i]); gl.texImage2D(gl.TEXTURE_2D,0,gl.R32F,W,Hf,0,gl.RED,gl.FLOAT,layBuf[i],0); };
+  const snowOn=S.snow>0 && hs>0;
+  if(snowOn){ const L=lay(0), rng=R(SEED.SNOW); for(let r=0;r<Hf;r++) speckles(L,r*W,W,rng.mix(r),S.snow*0.01,S.snowAniso,hs); }
+  // head switching
+  let headOn=false, cs=0, ti=0, tl=1;
+  if(S.headSwitching.on){ const h=S.headSwitching, nr=Math.round(h.height*vs), off=Math.round(h.offset*vs);
+    if(off<=nr && nr>0){ const na=nr-off, st=Math.max(Hf,na)-na, cut=Math.max(0,na-Hf), rng=R(SEED.HEAD);
+      for(let k=0;st+k<Hf;k++){ const row=st+k, index=na-(k+cut), o=row*RN+20;
+        const rs=h.shift*Math.pow((index+off)/nr,1.5), ns=(rs+(rng.mix(index).f()-0.5))*hs;
+        if(index===na && h.mid.on){ const r2=R(SEED.MIDLINE), jr=(r2.f()+r2.f())*0.5, jit=(jr-0.5)*h.mid.jitter;
+          cs=Math.max(0,Math.floor(W*(h.mid.position+jit))); if(cs>W) continue;
+          ti=(r2.f()+0.5)*0.5; tl=16*hs; rd[o]=ns; rd[o+3]=2;
+        } else { rd[o]=ns; rd[o+3]=1; }
+        headOn=true; } } }
+  // tracking
+  let trackOn=false, trackSnow=false;
+  if(S.tracking.on){ const t=S.tracking, nr=Math.round(t.height*vs);
+    if(nr>0){ const rng=R(SEED.TRACK), nseed=rng.i32(), offv=rng.f()*Hf, st=Math.max(Hf,nr)-nr, cut=Math.max(0,nr-Hf), n=Math.min(nr,Hf);
+      trackSnow=t.snow>0; const L=trackSnow?lay(1):null;
+      for(let k=0;k<n;k++){ const row=st+k, index=k+cut, sc=index/nr, o=row*RN;
+        rd[o+21]=simplex1((offv+k)*0.5,nseed)*sc*t.wave*0.25*hs; rd[o+26]=1;
+        setNoise(4,rng,row,index); rd[o+19]=sc*sc*t.noise*4*0.25;
+        if(trackSnow) speckles(L,row*W,W,rng.mix(index),t.snow*sc*sc,t.aniso,hs); }
+      trackOn=n>0; } }
+  // chroma phase
+  const rotOn=S.phaseError>0 || S.phaseNoise>0;
+  if(rotOn){ const rng=S.phaseNoise>0?R(SEED.PHASE):null; for(let r=0;r<Hf;r++){ let a=S.phaseError>0?S.phaseError:0; if(rng) a+=(rng.mix(r).f()-0.5)*2*S.phaseNoise; rd[r*RN+24]=a*Math.PI*2; } }
+  // VHS
+  const V=S.vhs, vOn=!!V.on; let edgeOn=false, lossOn=false;
+  const TP=vOn?({SP:[2400000,320000,4],LP:[1900000,300000,5],EP:[1400000,280000,6]})[V.tape]:null;
+  if(vOn){
+    if(V.edge.on && V.edge.intensity>0){ const rng=new Rng(seed).mix(SEED.EDGE), ns=rng.i32(), offv=rng.f()*Hf, e=V.edge, oct=clampI(e.detail,1,5);
+      for(let r=0;r<Hf;r++) rd[r*RN+22]=(fbm2(offv+r,frame*e.speed,ns,oct,FRAC_1_SQRT_2,2.0,e.freq/vs)/0.022)*e.intensity*0.5*hs; edgeOn=true; }
+    if(V.chromaLoss>0){ const rng=R(SEED.LOSS), lam=Math.log(1-Math.min(V.chromaLoss,0.999999)); let row=0;
+      for(;;){ row+=rng.geo(lam); if(row>=Hf) break; rd[row*RN+25]=0; row++; lossOn=true; } } }
+  bind(2,rowTex); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA32F,7,Hf,0,gl.RGBA,gl.FLOAT,rd,0);
+
+  /* filters for each pass (null = too long for the GPU path) */
+  const lpKey=(m)=>m+"|"+ft+"|"+hs;
+  const chromaLP=(m)=> m==="full" ? [ch([lowpassFor(1300000,rate,ft)],2), ch([lowpassFor(600000,rate,ft)],4)]
+                     : m==="light" ? [ch([lowpassFor(2600000,rate,ft)],1), ch([lowpassFor(2600000,rate,ft)],1)] : [DELTA,DELTA];
+  const kget=(key,make)=>{ let k=kcache.get(key); if(k) return k; const c=make(); if(c.some(x=>!x)) return null; return kernelTex(key,c); };
+  const firPass=(k,o)=>{ o=o||{}; taps.push(k.N); const pn=k.arr?"fir":"firT", u=use(pn); if(k.arr) gl.uniform3fv(u["uKa[0]"],k.arr); else { bind(1,k.t); gl.uniform1i(u.uK,1); } gl.uniform1i(u.uN,k.N); gl.uniform1i(u.uD,k.D);
+    gl.uniform3f(u.uLClamp,k.lc[0],k.lc[1],k.lc[2]); gl.uniform3f(u.uLConst,k.lk[0],k.lk[1],k.lk[2]);
+    gl.uniform1i(u.uPre,o.pre|0); gl.uniform1i(u.uFrame,frame&3); gl.uniform1i(u.uAlpha,o.alpha|0); gl.uniform1i(u.uMod,o.mod?1:0); gl.uniform1i(u.uRot,o.rot?1:0);
+    const ny=o.ny; gl.uniform3i(u.uNY,ny?1:0,ny?ny.col:0,ny?clampI(ny.n.detail,1,5):1); gl.uniform2f(u.uNYp,ny?ny.n.freq/hs:1,ny?ny.n.intensity*0.25:0);
+    const nc=o.nc; gl.uniform2i(u.uNC,nc?1:0,nc?clampI(nc.detail,1,5):1); gl.uniform2f(u.uNCp,nc?nc.freq/hs:1,nc?nc.intensity*0.25:0);
+    gl.uniform1i(u.uLayOn,o.lay!=null?1:0); bind(3,layTex[o.lay|0]); gl.uniform1i(u.uLay,3);
+    done(pn); };
+
+  // 1. RGB -> YIQ for this field's rows
+  { const pr=PR.conv; gl.useProgram(pr.p); bind(0,srcTex); gl.uniform1i(pr.u.uSrc,0); gl.uniform1i(pr.u.uStart,start); gl.uniform1i(pr.u.uStep,step); gl.uniform1f(pr.u.uFade,fade); draw(pr,pool[cur].f,W,Hf); }
+  // 2. input filters, then modulate chroma into the composite signal
+  { const k=kget("in|"+S.inputLuma+"|"+lpKey(S.chromaLowpassIn),()=>{ const c=chromaLP(S.chromaLowpassIn);
+      const y=S.inputLuma==="box"?{h:[0.25,0.25,0.25,0.25],delay:2,left:"const"}:S.inputLuma==="notch"?ch([notch(0.5,2.0)],0,"clamp"):DELTA; return [y,c[0],c[1]]; });
+    if(!k) return null; firPass(k,{mod:true}); }
+  // 3. composite sharpening, composite noise, snow
+  { const cs0=S.compositeSharpening, k=kget("cs|"+cs0+"|"+hs,()=>[cs0!==0?ch([withScale(lowpass((315000000/88/2)*hs,rate),-cs0)],0):DELTA,DELTA,DELTA]);
+    if(!k) return null; if(snowOn) upLay(0); firPass(k,{ny:cn.on?{col:0,n:cn}:null,lay:snowOn?0:null}); }
+  // 4. head switching and tracking
+  if(headOn||trackOn){ const u=use("shift"); gl.uniform1f(u.uCs,cs); gl.uniform1f(u.uTi,ti); gl.uniform1f(u.uTl,tl); gl.uniform1f(u.uTFreq,0.25/hs);
+    if(trackOn&&trackSnow) upLay(1); gl.uniform1i(u.uLayOn,trackOn&&trackSnow?1:0); bind(3,layTex[1]); gl.uniform1i(u.uLay,3); done("shift"); }
+  // 5. demodulate: separate luma, then recover chroma
+  { let dm=S.demod; if((Hf<2 && dm!=="box") || (W<3 && (dm==="2d"||dm==="2da"))) dm="notch";
+    const mode={box:1,comb1:2,comb2:3,"2d":4,"2da":5}[dm]|0;
+    if(mode){ const u=use("demod1"); gl.uniform1i(u.uMode,mode); done("demod1"); }
+    else { const k=kget("dn",()=>[ch([notch(0.5,2.0)],0),DELTA,DELTA]); if(!k) return null; firPass(k,{alpha:1}); }
+    const u=use("demod2"); gl.uniform1i(u.uFrame,frame&3); done("demod2"); }
+  // 6. luma smear
+  if(S.lumaSmear>0){ const k=kget("sm|"+S.lumaSmear+"|"+hs,()=>[ch([lowpass(Math.pow(2,-4*S.lumaSmear)*0.25,hs)],0),DELTA,DELTA]); if(!k) return null; firPass(k); }
+  // 7. ringing, luma noise, chroma noise, chroma phase
+  { const rg=S.ringing, on=rg.on && rg.intensity!==0;
+    const k=kget("rg|"+(on?rg.freq+"|"+rg.power+"|"+rg.intensity:"-")+"|"+hs,()=>[on?ch([withScale(notch(Math.max(0,Math.min(1,rg.freq/hs)),rg.power),rg.intensity)],1,"clamp"):DELTA,DELTA,DELTA]);
+    if(!k) return null; firPass(k,{ny:ln.on?{col:1,n:ln}:null,nc:hn.on?hn:null,rot:rotOn}); }
+  // 8. chroma delay
+  if(S.delayH!==0 || S.delayV!==0){ const u=use("cdelay"); gl.uniform1i(u.uDv,Math.round(S.delayV*vs)); gl.uniform1f(u.uDh,S.delayH*hs); done("cdelay"); }
+  // 9. VHS: edge wave, tape bandwidth and sharpening
+  if(edgeOn){ use("edge"); done("edge"); }
+  if(TP){ const [lc,cc,cd]=TP, d=Math.round(cd*hs), sh=V.sharpen, shOn=sh.on && sh.intensity>0, mult=ft==="constk"?4:1;
+    const k=kget("tp|"+V.tape+"|"+ft+"|"+hs+"|"+(shOn?sh.intensity+"|"+sh.freq:"-"),()=>{
+      const y=[lowpassFor(lc,rate,ft),withScale(lowpass(lc,rate),-1.6)]; if(shOn) y.push(withScale(lowpassFor(lc*mult*sh.freq,rate,ft),-sh.intensity*2*sh.freq));
+      const c=ch([lowpassFor(cc,rate,ft)],d); return [ch(y,0),c,c]; });
+    if(!k) return null; firPass(k); }
+  // 10. chroma loss, vertical chroma blend, output chroma filter
+  { const vb=S.vertBlend && Hf>=2, m=S.chromaLowpassOut;
+    if(lossOn || vb || m==="full" || m==="light"){ const k=kget("out|"+lpKey(m),()=>{ const c=chromaLP(m); return [DELTA,c[0],c[1]]; }); if(!k) return null; firPass(k,{pre:(lossOn?1:0)|(vb?2:0)}); } }
+  return cur;
+}
+
+/* ---------- public ---------- */
+/* px: RGBA bytes, or a canvas. opt.canvas: return a canvas holding the result (no pixel read-back) instead of bytes.
+   opt.fade: darken the input first (picture fades). Returns null when this frame can't be done here. */
+function apply(px,W,H,S,size,frame,opt){
+  opt=opt||{}; const force=!!opt.force, toCanvas=!!opt.canvas, fade=opt.fade==null?1:Math.max(0,Math.min(1,opt.fade));
+  if(dead){ dead=false; gl=null; }
+  try{
+    if(!gl){ init(force,!!opt.half); }
+    if(W<4 || H<4 || W>gl.getParameter(gl.MAX_TEXTURE_SIZE) || H>gl.getParameter(gl.MAX_TEXTURE_SIZE)) return null;
+    frame=frame|0; const sc=S.scale||{on:false}, hs=(size||1)*(sc.on?sc.h:1), vs=(size||1)*(sc.on?sc.v:1);
+    if(!(hs>0) || !(vs>0)) return null;
+    let mode=S.field||"ilu"; if(mode==="alt") mode=(frame&1)?"upper":"lower";
+    const passes = mode==="both"?[[-1,frame]] : mode==="ilu"?[[0,frame*2],[1,frame*2+1]] : mode==="ill"?[[1,frame*2],[0,frame*2+1]] : mode==="upper"?[[0,frame]] : [[1,frame]];
+    const heights=passes.map(([f])=>f<0?H:Math.floor((H-f+1)/2)), Hmax=Math.max.apply(null,heights);
+    sizeTargets(W,Hmax,H);
+    bind(0,srcTex);
+    if(px.getContext){ if(px.width!==W||px.height!==H) return null; gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,gl.RGBA,gl.UNSIGNED_BYTE,px); }
+    else gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,W,H,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array(px.buffer,px.byteOffset,W*H*4),0);
+    const res=[]; let free=[0,1,2]; taps=[];
+    for(let i=0;i<passes.length;i++){ const [f,fn]=passes[i];
+      const r=field(S,W,heights[i],H,f<0?0:f,f<0?1:2,fn,hs,vs,free,fade); if(r==null) return null;
+      res.push(r); free=free.filter(x=>x!==r); }
+    const pr=PR.out; gl.useProgram(pr.p); bind(0,pool[res[0]].t); gl.uniform1i(pr.u.uA,0); bind(1,pool[res.length>1?res[1]:res[0]].t); gl.uniform1i(pr.u.uB,1);
+    gl.uniform1i(pr.u.uMode,mode==="both"?0:1); gl.uniform1i(pr.u.uParA,passes[0][0]<0?0:passes[0][0]); gl.uniform1i(pr.u.uH,H);
+    const bob=mode==="upper"?1:mode==="lower"?0:-1;
+    if(toCanvas){ if(cv.width!==W||cv.height!==H){ cv.width=W; cv.height=H; }
+      gl.uniform1i(pr.u.uFlip,1); gl.uniform1i(pr.u.uBob,bob); draw(pr,null,W,H);
+      if(gl.isContextLost()){ gl=null; return null; } return cv; }
+    gl.uniform1i(pr.u.uFlip,0); gl.uniform1i(pr.u.uBob,-1); draw(pr,outFbo,W,H);
+    const out=new Uint8ClampedArray(W*H*4); gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array(out.buffer));
+    if(gl.getError()!==gl.NO_ERROR || gl.isContextLost()) { gl=null; return null; }
+    if(mode==="upper"||mode==="lower"){ const st=mode==="upper"?1:0;   /* line-double the missing field, as the CPU engine does */
+      for(let r=st;r<H;r+=2){ const a=r-1>=0?r-1:r+1, b=r+1<H?r+1:r-1, o=r*W*4, oa=a*W*4, ob=b*W*4; for(let k=0;k<W*4;k++) out[o+k]=(out[oa+k]+out[ob+k])/2; } }
+    return out;
+  }catch(e){ info={ok:false,why:String(e&&e.message||e)}; gl=null; G.GPUTAPE.failed=true; return null; }
+}
+function setPrecision(bits){ const f=bits===16?FT16:FT32; if(!gl||!f) return false; wantHalf=bits===16;
+  if(f!==FT){ FT=f; for(const t of pool){ gl.deleteFramebuffer(t.f); gl.deleteTexture(t.t); } pool=[]; poolW=poolH=0; }
+  info.precision=FT.name; return true; }
+G.GPUTAPE={apply,setPrecision,failed:false,get info(){ return info; },get taps(){ return taps; },get ready(){ return !!gl; },
+  get precisions(){ const a=[]; if(gl&&FT32) a.push(32); if(gl&&FT16) a.push(16); return a; }};
+})(self);
+
+/* CRT TV look on the graphics chip (WebGL2): the same steps as CRT.apply in the worker engine. Glow buffer (4x smaller,
+   two 5-tap box blurs each way), then curve, scanlines, phosphor pattern, glow and edge shadow at twice the input size.
+   apply(canvas, W, H, K) returns a canvas of 2W x 2H, or null when it can't be done here (the caller uses the worker). */
+(function(G){
+"use strict";
+const VS=`#version 300 es
+void main(){ vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2)); gl_Position=vec4(p*2.0-1.0,0.0,1.0); }`;
+const HEAD=`#version 300 es
+precision highp float; precision highp int; precision highp sampler2D;
+out vec4 o;
+`;
+const FS={
+down:HEAD+`uniform sampler2D uSrc; uniform ivec2 uSize;
+void main(){ ivec2 P=ivec2(gl_FragCoord.xy); vec3 a=vec3(0.0); float n=0.0;
+  for(int j=0;j<4;j++) for(int i=0;i<4;i++){ ivec2 q=P*4+ivec2(i,j); if(q.x<uSize.x && q.y<uSize.y){ a+=texelFetch(uSrc,q,0).rgb; n+=1.0; } }
+  o=vec4(a*255.0/max(n,1.0),1.0); }`,
+blur:HEAD+`uniform sampler2D uSrc; uniform ivec2 uB,uDir;
+void main(){ ivec2 P=ivec2(gl_FragCoord.xy); vec3 a=vec3(0.0);
+  for(int k=-2;k<=2;k++){ ivec2 q=clamp(P+uDir*k,ivec2(0),uB-1); a+=texelFetch(uSrc,q,0).rgb; }
+  o=vec4(a/5.0,1.0); }`,
+main:HEAD+`uniform sampler2D uSrc,uGlow; uniform ivec2 uSize,uB; uniform float uK,uSc,uMk,uGl,uVig,uComp; uniform int uGrille,uFlip;
+vec3 T(int x,int y){ return texelFetch(uSrc,ivec2(x,y),0).rgb*255.0; }
+void main(){ ivec2 P=ivec2(gl_FragCoord.xy); int W2=uSize.x*2, H2=uSize.y*2, ox=P.x, oy=uFlip!=0?H2-1-P.y:P.y;
+  float v=(float(oy)+0.5)/float(H2)*2.0-1.0, u=(float(ox)+0.5)/float(W2)*2.0-1.0;
+  float uu=u*(1.0+uK*v*v), vv=v*(1.0+uK*u*u);
+  if(uu<=-1.0||uu>=1.0||vv<=-1.0||vv>=1.0){ o=vec4(vec3(6.0/255.0),1.0); return; }
+  float sx=(uu+1.0)/2.0*float(uSize.x)-0.5, sy=(vv+1.0)/2.0*float(uSize.y)-0.5;
+  int x0=clamp(int(floor(sx)),0,uSize.x-1), y0=clamp(int(floor(sy)),0,uSize.y-1), x1=min(uSize.x-1,x0+1), y1=min(uSize.y-1,y0+1);
+  float fx=clamp(sx-float(x0),0.0,1.0), fy=clamp(sy-float(y0),0.0,1.0);
+  vec3 c=(T(x0,y0)*(1.0-fx)+T(x1,y0)*fx)*(1.0-fy)+(T(x0,y1)*(1.0-fx)+T(x1,y1)*fx)*fy;
+  float lum=dot(c,vec3(0.299,0.587,0.114))/255.0;
+  float sw=1.0-uSc*0.5*(1.0-cos(6.283185307179586*fract(sy+0.5)))*(1.0-0.45*lum);
+  vec3 m=vec3(1.0);
+  if(uMk>0.0){ int ph=uGrille!=0 ? ox%3 : (ox+((oy>>1)&1)*2)%3; float lo=1.0-uMk;
+    m = ph==0 ? vec3(1.0,lo,lo) : (ph==1 ? vec3(lo,1.0,lo) : vec3(lo,lo,1.0));
+    if(uGrille==0 && (oy&1)==1) m*=0.85; }
+  ivec2 gi=ivec2(int(clamp(sx/4.0,0.0,float(uB.x-1))),int(clamp(sy/4.0,0.0,float(uB.y-1))));
+  vec3 g=texelFetch(uGlow,gi,0).rgb;
+  float xs=(uu+1.0)/2.0, ys=(vv+1.0)/2.0, vg=pow(max(0.0,16.0*xs*(1.0-xs)*ys*(1.0-ys)),0.3), vf=1.0-uVig+uVig*vg;
+  o=vec4((c*sw*m*uComp+g*uGl*0.55)*vf/255.0,1.0); }`
+};
+let gl=null, cv=null, PR={}, FT=null, srcTex=null, tg=[], tgW=0, tgH=0, info={ok:false,why:"not started"};
+function compile(src,type){ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error("shader: "+gl.getShaderInfoLog(s)); return s; }
+function program(fs){ const p=gl.createProgram(); gl.attachShader(p,compile(VS,gl.VERTEX_SHADER)); gl.attachShader(p,compile(fs,gl.FRAGMENT_SHADER)); gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error("link: "+gl.getProgramInfoLog(p));
+  const u={}, n=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS); for(let i=0;i<n;i++){ const a=gl.getActiveUniform(p,i); u[a.name]=gl.getUniformLocation(p,a.name); } return {p,u}; }
+function tex(){ const t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE); return t; }
+function target(w,h){ const t=tex(); gl.texImage2D(gl.TEXTURE_2D,0,FT.ifmt,w,h,0,gl.RGBA,FT.type,null);
+  const f=gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER,f); gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0);
+  if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)!==gl.FRAMEBUFFER_COMPLETE) throw new Error("framebuffer"); return {t,f}; }
+function init(force){
+  cv=document.createElement("canvas"); cv.width=cv.height=4;
+  gl=cv.getContext("webgl2",{antialias:false,depth:false,stencil:false,alpha:false,premultipliedAlpha:false,preserveDrawingBuffer:true,powerPreference:"high-performance",failIfMajorPerformanceCaveat:!force});
+  if(!gl) throw new Error("no fast WebGL2");
+  let renderer=""; try{ const d=gl.getExtension("WEBGL_debug_renderer_info"); if(d) renderer=String(gl.getParameter(d.UNMASKED_RENDERER_WEBGL)||""); }catch(e){}
+  if(!force && /swiftshader|llvmpipe|software|basic render/i.test(renderer)) throw new Error("software renderer");
+  const cbf=gl.getExtension("EXT_color_buffer_float"), cbh=gl.getExtension("EXT_color_buffer_half_float");
+  const cands=[]; if(cbf) cands.push({ifmt:gl.RGBA32F,type:gl.FLOAT}); if(cbf||cbh) cands.push({ifmt:gl.RGBA16F,type:gl.HALF_FLOAT});
+  FT=null; for(const c of cands){ try{ FT=c; const t=target(2,2); gl.deleteFramebuffer(t.f); gl.deleteTexture(t.t); break; }catch(e){ FT=null; } }
+  if(!FT) throw new Error("no float targets");
+  for(const k in FS) PR[k]=program(FS[k]);
+  srcTex=tex(); tg=[]; tgW=tgH=0;
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false); gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL,gl.NONE);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT,1); gl.disable(gl.BLEND); gl.disable(gl.DEPTH_TEST); gl.disable(gl.DITHER);
+  cv.addEventListener("webglcontextlost",e=>{ e.preventDefault(); gl=null; },false);
+  info={ok:true,why:""};
+}
+function bind(unit,t){ gl.activeTexture(gl.TEXTURE0+unit); gl.bindTexture(gl.TEXTURE_2D,t); }
+function apply(src,W,H,K,opt){
+  opt=opt||{};
+  try{
+    if(!gl) init(!!opt.force);
+    const max=gl.getParameter(gl.MAX_TEXTURE_SIZE); if(W<2||H<2||W*2>max||H*2>max) return null;
+    const bw=Math.max(1,Math.ceil(W/4)), bh=Math.max(1,Math.ceil(H/4));
+    if(bw!==tgW||bh!==tgH){ for(const t of tg){ gl.deleteFramebuffer(t.f); gl.deleteTexture(t.t); } tg=[target(bw,bh),target(bw,bh)]; tgW=bw; tgH=bh; }
+    bind(0,srcTex);
+    if(src.getContext){ if(src.width!==W||src.height!==H) return null; gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,gl.RGBA,gl.UNSIGNED_BYTE,src); }
+    else gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,W,H,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array(src.buffer,src.byteOffset,W*H*4),0);
+    const pass=(pr,dst,w,h)=>{ gl.bindFramebuffer(gl.FRAMEBUFFER,dst); gl.viewport(0,0,w,h); gl.drawArrays(gl.TRIANGLES,0,3); };
+    let pr=PR.down; gl.useProgram(pr.p); gl.uniform1i(pr.u.uSrc,0); gl.uniform2i(pr.u.uSize,W,H); pass(pr,tg[0].f,bw,bh);
+    pr=PR.blur; gl.useProgram(pr.p); gl.uniform1i(pr.u.uSrc,0); gl.uniform2i(pr.u.uB,bw,bh);
+    for(let i=0;i<4;i++){ bind(0,tg[i&1].t); gl.uniform2i(pr.u.uDir,(i&1)?0:1,(i&1)?1:0); pass(pr,tg[(i+1)&1].f,bw,bh); }   /* ends in tg[0] */
+    const k=K.curve*0.16, sc=K.scan, mk=K.mask==="none"?0:K.maskAmt;
+    if(cv.width!==W*2||cv.height!==H*2){ cv.width=W*2; cv.height=H*2; }
+    pr=PR.main; gl.useProgram(pr.p); bind(0,srcTex); gl.uniform1i(pr.u.uSrc,0); bind(1,tg[0].t); gl.uniform1i(pr.u.uGlow,1);
+    gl.uniform2i(pr.u.uSize,W,H); gl.uniform2i(pr.u.uB,bw,bh); gl.uniform1f(pr.u.uK,k); gl.uniform1f(pr.u.uSc,sc); gl.uniform1f(pr.u.uMk,mk);
+    gl.uniform1f(pr.u.uGl,K.glow); gl.uniform1f(pr.u.uVig,K.vig); gl.uniform1f(pr.u.uComp,1+sc*0.45+mk*0.5); gl.uniform1i(pr.u.uGrille,K.mask!=="shadow"?1:0); gl.uniform1i(pr.u.uFlip,1);
+    pass(pr,null,W*2,H*2);
+    if(!gl || gl.isContextLost()){ gl=null; return null; }
+    return cv;
+  }catch(e){ info={ok:false,why:String(e&&e.message||e)}; gl=null; G.GPUCRT.failed=true; return null; }
+}
+G.GPUCRT={apply,failed:false,get info(){ return info; }};
+})(self);
+
+</script>
 
 <script src="mp4-muxer.js"></script>
 <script>
@@ -825,7 +1291,8 @@ const CLOOKS=[
   {id:"mono", name:"Mono",      sub:"Black and white", gain:[1,1,1],   con:1.30, sat:0,    lift:6,  tint:[0,0,0],   clip:1.6},
 ];
 function cdefaults(){ return {type:"vga", look:"day", flash:false, noise:45, mic:true, scale:1, seed:0,
-  stamp:"none", stampFmt:"yy", stampTime:false, stampPos:"br", stampSize:1, frame:"none", crop:"sensor",
+  stamp:"none", stampFmt:"yy", stampTime:false, stampPos:"br", stampSize:1, stampDate:"", frame:"none", crop:"sensor", cropZoom:1, cropX:0, cropY:0,
+  infoF:"F2.8", infoS:null, infoIso:"ISO100", infoRes:true, infoX:"", infoNum:null,
   cfId:"", cfFit:"stretch", cfScale:1, cfX:0, cfY:0, cfOpacity:1, cfBlend:"normal"}; }
 let C=cdefaults();
 const camType=()=>CAMS.find(c=>c.id===C.type)||CAMS[0];
@@ -936,7 +1403,7 @@ function findPreset(id){ return allPresets().find(p=>p.id===id); }
 function presetSettings(p){ if(p.j) return fromNtscRs(p.j); const S=merge(defaults(), clone(p.o)); if(p.t!==undefined) track(S,p.t); return S; }
 
 /* ---------- picture + overlay settings ---------- */
-const PDEF={aspect:"4:3", rot:0, flip:false, lines:480, bright:0, contrast:1, sat:1, warmth:0, osd:"none",
+const PDEF={aspect:"4:3", rot:0, flip:false, lines:480, bright:0, contrast:1, sat:1, warmth:0, osd:"none", osdL:null, osdR:null, osdDateOn:true, osdTimeOn:true, osdDate:"", osdSize:1, cropZoom:1, cropX:0, cropY:0,
   border:"none", borderColor:"#000000", borderSize:0.06, vBg:"blur", vZoom:1, vY:0,
   rating:"none", ratingPos:"tl", ratingOpacity:0.6, ratingSize:0.22, ratingTime:"all",
   logoOn:false, logoPos:"tr", logoX:0, logoY:0, logoSize:0.14, logoOpacity:0.55, logoWhite:false, logoTime:"all",
@@ -1004,6 +1471,9 @@ const CONTROLS={
  picture:[
   {k:"seg",id:"ccrop",label:"Crop",show:()=>M==="camera",opts:[["sensor","Camera"],["orig","Original"],["4:3","4:3"],["16:9","16:9"],["1:1","1:1"]],get:()=>C.crop,set:v=>C.crop=v,pic:1,desc:"Camera uses the sensor’s own shape. Crops turn to match a portrait or landscape photo."},
   {k:"seg",show:()=>M==="tape",id:"aspect",label:"Crop",opts:[["orig","Original"],["4:3","4:3"],["16:9","16:9"],["1:1","1:1"],["3:4","3:4"]],get:()=>P.aspect,set:v=>P.aspect=v,pic:1},
+  {k:"rng",id:"czoom",label:"Zoom in",min:1,max:3,step:0.01,fmt:v=>Math.round(v*100)+"%",get:()=>(M==="tape"?P:C).cropZoom||1,set:v=>(M==="tape"?P:C).cropZoom=v,pic:1},
+  {k:"rng",id:"cmx",label:"Move left or right",min:-1,max:1,step:0.01,fmt:v=>v===0?"Centre":(v<0?"← ":"→ ")+Math.round(Math.abs(v)*100)+"%",get:()=>(M==="tape"?P:C).cropX||0,set:v=>(M==="tape"?P:C).cropX=v,pic:1},
+  {k:"rng",id:"cmy",label:"Move up or down",min:-1,max:1,step:0.01,fmt:v=>v===0?"Centre":(v>0?"↑ ":"↓ ")+Math.round(Math.abs(v)*100)+"%",get:()=>(M==="tape"?P:C).cropY||0,set:v=>(M==="tape"?P:C).cropY=v,pic:1,desc:"Slides the picture inside the crop, so the part you want stays in frame. If a slider does nothing, the crop isn't cutting anything off in that direction: zoom in a little first."},
   {k:"seg",id:"rot",label:"Rotate",opts:[["0","0°"],["90","90°"],["180","180°"],["270","270°"]],get:()=>String(P.rot),set:v=>P.rot=+v,pic:1},
   {k:"sw",id:"flip",label:"Mirror",get:()=>P.flip,set:v=>P.flip=v,pic:1},
   {k:"seg",show:()=>M==="tape",id:"lines",label:"Scan lines",opts:[["240","240"],["480","480"],["720","720"]],get:()=>String(P.lines),set:v=>P.lines=+v,pic:1,desc:"480 is the NTSC picture height. Effects scale with the line count."},
@@ -1063,8 +1533,15 @@ const CONTROLS={
   {k:"sw",id:"stime",label:"Add the time",get:()=>C.stampTime,set:v=>C.stampTime=v,pic:1,show:()=>C.stamp!=="none"},
   {k:"rng",id:"ssize",label:"Stamp size",min:0.5,max:2.5,step:0.05,fmt:v=>Math.round(v*100)+"%",get:()=>C.stampSize,set:v=>C.stampSize=v,pic:1,show:()=>C.stamp!=="none"},
   {k:"seg",id:"spos",label:"Position",opts:[["br","Bottom right"],["bl","Bottom left"],["tr","Top right"],["tl","Top left"]],get:()=>C.stampPos,set:v=>C.stampPos=v,pic:1,show:()=>C.stamp!=="none"},
+  {k:"date",id:"sdate",label:"Date and time to show",get:()=>C.stampDate||"",set:v=>C.stampDate=v,pic:1,show:()=>C.stamp!=="none",desc:"Pick any date, such as a birthday in 2003. In a video the clock keeps running from the time you pick."},
   {k:"head",label:"Frame"},
-  {k:"seg",id:"sframe",label:"Frame style",opts:[["none","None"],["view","Viewfinder"],["phone","Phone camera"],["info","Shot info"],["custom","Your own"]],get:()=>C.frame,set:v=>{C.frame=v; if(v==="custom"&&!curFrame()&&FRAMES.length) C.cfId=FRAMES[FRAMES.length-1].id; buildPanel();},pic:1,desc:"Viewfinder adds an old camera screen's battery, frame counter and focus marks. Phone camera adds a 2000s phone's status and soft-key bars."},
+  {k:"seg",id:"sframe",label:"Frame style",opts:[["none","None"],["view","Viewfinder"],["phone","Phone camera"],["info","Shot info"],["custom","Your own"]],get:()=>C.frame,set:v=>{C.frame=v; if(v==="custom"&&!curFrame()&&FRAMES.length) C.cfId=FRAMES[FRAMES.length-1].id; buildPanel();},pic:1,desc:"Viewfinder adds an old camera screen's battery, frame counter and focus marks. Phone camera adds a 2000s phone's status and soft-key bars. Shot info adds a camera's playback bar, and you can type your own numbers."},
+  {k:"line",id:"infoF",label:"Aperture",max:10,get:()=>C.infoF==null?"":C.infoF,set:v=>C.infoF=v,pic:1,show:()=>C.frame==="info"},
+  {k:"line",id:"infoS",label:"Shutter speed",max:10,get:()=>C.infoS==null?infoDefaults().S:C.infoS,set:v=>C.infoS=v,pic:1,show:()=>C.frame==="info"},
+  {k:"line",id:"infoIso",label:"ISO",max:10,get:()=>C.infoIso==null?"":C.infoIso,set:v=>C.infoIso=v,pic:1,show:()=>C.frame==="info"},
+  {k:"sw",id:"infoRes",label:"Show the picture size",get:()=>C.infoRes!==false,set:v=>C.infoRes=v,pic:1,show:()=>C.frame==="info"},
+  {k:"line",id:"infoX",label:"Extra text",max:16,ph:"MACRO, your name…",get:()=>C.infoX||"",set:v=>C.infoX=v,pic:1,show:()=>C.frame==="info"},
+  {k:"line",id:"infoNum",label:"Shot number",max:12,get:()=>C.infoNum==null?infoDefaults().num:C.infoNum,set:v=>C.infoNum=v,pic:1,show:()=>C.frame==="info",desc:"Type whatever you like in each box, or clear a box to leave it out. Reset camera settings brings back the automatic shutter speed and shot number."},
   {k:"frames",id:"cflib",label:"Your frames",show:()=>C.frame==="custom",desc:"Upload a PNG with a see-through middle, like a photo booth border or a scrapbook frame. Your frames stay in this browser and go into your backups."},
   {k:"seg",id:"cffit",label:"Fit",opts:[["stretch","Stretch to fill"],["fit","Fit inside"],["fill","Cover (crop)"]],get:()=>C.cfFit,set:v=>C.cfFit=v,pic:1,show:()=>C.frame==="custom"&&!!curFrame()},
   {k:"rng",id:"cfscale",label:"Size",min:0.3,max:2,step:0.01,fmt:pct,get:()=>C.cfScale,set:v=>C.cfScale=v,pic:1,show:()=>C.frame==="custom"&&!!curFrame()},
@@ -1084,7 +1561,13 @@ const CONTROLS={
   {k:"sw",id:"crtBezel",label:"TV surround",get:()=>P.crt.bezel,set:v=>P.crt.bezel=v,show:()=>P.crt.on,desc:"A dark plastic TV frame with rounded screen corners and a faint glass reflection."},
  ],
  overlay:[
-  {k:"seg",id:"osd",label:"On-screen display",opts:[["none","None"],["play","Playback"],["rec","Camcorder"]],get:()=>P.osd,set:v=>P.osd=v,pic:1,desc:"The text is drawn before the effect, so it smears like a real VCR overlay."},
+  {k:"seg",id:"osd",label:"On-screen display",opts:[["none","None"],["play","Playback"],["rec","Camcorder"]],get:()=>P.osd,set:v=>{P.osd=v; buildPanel();},pic:1,desc:"The text is drawn before the effect, so it smears like a real VCR overlay."},
+  {k:"line",id:"osdL",label:"Top-left text",max:16,get:()=>P.osdL==null?(P.osd==="play"?"PLAY ▶":"● REC"):P.osdL,set:v=>P.osdL=v,pic:1,show:()=>P.osd!=="none"},
+  {k:"line",id:"osdR",label:"Top-right text",max:12,get:()=>P.osdR==null?(P.osd==="play"?(S.vhs.on&&S.vhs.tape!=="NONE"?S.vhs.tape:""):"SP"):P.osdR,set:v=>P.osdR=v,pic:1,show:()=>P.osd!=="none",desc:"Type your own, such as a channel number or a tape speed. Clear a box to show nothing there."},
+  {k:"sw",id:"osdDateOn",label:"Show the date",get:()=>P.osdDateOn!==false,set:v=>{P.osdDateOn=v; buildPanel();},pic:1,show:()=>P.osd!=="none"},
+  {k:"sw",id:"osdTimeOn",label:"Show the time",get:()=>P.osdTimeOn!==false,set:v=>{P.osdTimeOn=v; buildPanel();},pic:1,show:()=>P.osd!=="none"},
+  {k:"date",id:"osdDate",label:"Date and time to show",get:()=>P.osdDate||"",set:v=>P.osdDate=v,pic:1,show:()=>P.osd!=="none"&&(P.osdDateOn!==false||P.osdTimeOn!==false),desc:"Pick any date and time, such as a summer evening in 1999. In a video the clock keeps running from the time you pick."},
+  {k:"rng",id:"osdSize",label:"Text size",min:0.6,max:1.6,step:0.05,fmt:v=>Math.round(v*100)+"%",get:()=>P.osdSize||1,set:v=>P.osdSize=v,pic:1,show:()=>P.osd!=="none"},
   {k:"head",label:"Closed captions"},
   {k:"sw",id:"ccOn",label:"Show captions",get:()=>P.cc.on,set:v=>{P.cc.on=v; buildPanel();},desc:"Text on black boxes in the VCR OSD Mono font, like a TV's caption decoder."},
   {k:"text",id:"ccText",label:"Caption text",get:()=>P.cc.text,set:v=>P.cc.text=v,show:()=>P.cc.on,desc:"Up to 4 lines. Press Return for a new line."},
@@ -1203,6 +1686,15 @@ function buildPanel(){
       const add=document.createElement("button"); add.type="button"; add.className="fthumb add"; add.id="c-frameAdd"; add.textContent="+ Upload"; add.onclick=()=>fi.click(); lib.appendChild(add);
       fi.onchange=async()=>{ const f=fi.files&&fi.files[0]; fi.value=""; if(f) await addFrameFile(f); };
       const cf=curFrame(); if(cf){ const w=document.createElement("div"); w.className="framerm"; const rm=document.createElement("button"); rm.type="button"; rm.className="link"; rm.id="c-frameRemove"; rm.textContent=`Remove “${cf.name}”`; rm.onclick=()=>removeFrame(cf.id); w.appendChild(rm); row.appendChild(w); }
+    } else if(c.k==="line"){
+      row.innerHTML=`<label for="c-${c.id}"></label><input type="text" class="line" id="c-${c.id}" maxlength="${c.max||24}" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off">`;
+      row.querySelector("label").textContent=c.label; const inp=row.querySelector("input"); inp.value=c.get(); if(c.ph) inp.placeholder=c.ph;
+      let tt=null; inp.addEventListener("input",()=>{ c.set(inp.value); clearTimeout(tt); tt=setTimeout(()=>ch(),250); });
+    } else if(c.k==="date"){
+      row.innerHTML=`<label for="c-${c.id}"></label><button class="link" type="button" id="c-${c.id}-auto">Use the file's own date</button><input type="datetime-local" class="line" id="c-${c.id}" min="1970-01-01T00:00" max="2099-12-31T23:59">`;
+      row.querySelector("label").textContent=c.label; const inp=row.querySelector("input"), au=row.querySelector("button"); inp.value=c.get(); au.hidden=!c.get();
+      inp.addEventListener("input",()=>{ c.set(inp.value); au.hidden=!inp.value; ch(); });
+      au.onclick=()=>{ c.set(""); inp.value=""; au.hidden=true; ch(); };
     } else if(c.k==="sw"){
       row.innerHTML=`<span class="lbl"></span><button class="sw" id="c-${c.id}"></button>`;
       row.querySelector(".lbl").textContent=c.label; const b=row.querySelector("button"); b.setAttribute("aria-label",c.label);
@@ -1287,18 +1779,19 @@ function geometry(source){
   const [sw0,sh0]=dims(source), rotated=P.rot===90||P.rot===270, sw=rotated?sh0:sw0, sh=rotated?sw0:sh0;
   const A={"orig":sw/sh,"4:3":4/3,"16:9":16/9,"1:1":1,"3:4":3/4}[P.aspect]||4/3;
   let cw=sw, ch=sh; if(sw/sh>A) cw=sh*A; else ch=sw/A;
+  const z=Math.max(1,P.cropZoom||1); cw/=z; ch/=z; const sx=(sw-cw)/2*(1-(P.cropX||0)), sy=(sh-ch)/2*(1+(P.cropY||0));
   const H=LIVE_LINES||P.lines, W=Math.max(16,Math.min(1600,Math.round(H*A/2)*2));
-  return {sw0,sh0,sw,sh,cw,ch,W,H};
+  return {sw0,sh0,sw,sh,cw,ch,W,H,sx,sy};
 }
-function prep(source, offsetMs, reuse){
-  const g=geometry(source), {sw0,sh0,sw,sh,cw,ch,W,H}=g, R=reuse||{};
+function prep(source, offsetMs, reuse, noData){
+  const g=geometry(source), {sw0,sh0,sw,sh,cw,ch,W,H,sx,sy}=g, R=reuse||{};
   const o=R.o||document.createElement("canvas"); if(o.width!==sw||o.height!==sh){ o.width=sw; o.height=sh; }
   const ox=o.getContext("2d"); ox.setTransform(1,0,0,1,0,0); ox.clearRect(0,0,sw,sh);
   ox.translate(sw/2,sh/2); ox.rotate(P.rot*Math.PI/180); if(P.flip) ox.scale(-1,1); ox.drawImage(source,-sw0/2,-sh0/2);
   const c=R.c||document.createElement("canvas"); if(c.width!==W||c.height!==H){ c.width=W; c.height=H; }
   const x=c.getContext("2d",{willReadFrequently:true});
   x.imageSmoothingEnabled=true; x.imageSmoothingQuality="high";
-  x.drawImage(o,(sw-cw)/2,(sh-ch)/2,cw,ch,0,0,W,H);
+  x.drawImage(o,sx,sy,cw,ch,0,0,W,H);
   if(P.bright!==0||P.contrast!==1||P.sat!==1||P.warmth!==0){
     const id=x.getImageData(0,0,W,H), d=id.data, b=P.bright*255, k=P.contrast, s=P.sat, w=P.warmth*28;
     for(let i=0;i<d.length;i+=4){ let r=d[i], gg=d[i+1], bl=d[i+2];
@@ -1312,7 +1805,7 @@ function prep(source, offsetMs, reuse){
   if(P.logoOn && LOGO.img) drawLogo(x,W,H,offsetMs||0);
   if(P.cc.on && P.cc.soft) drawCaptions(x,0,0,W,H,offsetMs||0);
   if(reuse){ reuse.o=o; reuse.c=c; }
-  return {W,H,data:x.getImageData(0,0,W,H).data, orig:c};
+  return {W,H,data:noData?null:x.getImageData(0,0,W,H).data, orig:c};
 }
 /* ---- channel logo: the user's own image, kept in this browser (localStorage "pretro-logo") ---- */
 const LOGO={url:null,img:null,white:null};
@@ -1354,18 +1847,19 @@ function drawRating(x,W,H,offsetMs){
   x.globalAlpha=P.ratingOpacity; x.drawImage(im,px,py,sz,sz); x.restore();
 }
 function drawOsd(x,W,H,offsetMs){
-  const t=new Date(srcTime+offsetMs), M=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][t.getMonth()];
+  const t=new Date(shownTime("tape")+offsetMs), M=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][t.getMonth()];
   const hh=t.getHours(), h12=((hh+11)%12)+1, mm=String(t.getMinutes()).padStart(2,"0"), ss=String(t.getSeconds()).padStart(2,"0"), ap=hh<12?"AM":"PM";
-  const fs=Math.round(H*0.075), pad=Math.round(H*0.06);
+  const fs=Math.round(H*0.075*(P.osdSize||1)), pad=Math.round(H*0.06);
   x.font=`${fs}px "VT323", ui-monospace, monospace`; x.textBaseline="top";
   const put=(txt,px,py,align,color)=>{ x.textAlign=align; x.fillStyle="rgba(0,0,0,.85)"; x.fillText(txt,px+Math.max(1,fs*0.06),py+Math.max(1,fs*0.06)); x.fillStyle=color||"#fff"; x.fillText(txt,px,py); };
-  if(P.osd==="play"){
-    put("PLAY ▶",pad,pad,"left"); put(S.vhs.on&&S.vhs.tape!=="NONE"?S.vhs.tape:"",W-pad,pad,"right");
-    x.textBaseline="bottom"; put(`${M}. ${t.getDate()} ${t.getFullYear()}`,pad,H-pad*1.4,"left");
-    put(kind==="video"?`${h12}:${mm}:${ss} ${ap}`:`${h12}:${mm} ${ap}`,W-pad,H-pad*1.4,"right");
+  const play=P.osd==="play", tl=P.osdL==null?(play?"PLAY ▶":"● REC"):P.osdL, tr=P.osdR==null?(play?(S.vhs.on&&S.vhs.tape!=="NONE"?S.vhs.tape:""):"SP"):P.osdR;
+  const date=P.osdDateOn===false?"":`${M}${play?".":""} ${t.getDate()} ${t.getFullYear()}`, time=P.osdTimeOn===false?"":(kind==="video"?`${h12}:${mm}:${ss} ${ap}`:`${h12}:${mm} ${ap}`);
+  if(play){
+    put(tl,pad,pad,"left"); put(tr,W-pad,pad,"right");
+    x.textBaseline="bottom"; put(date,pad,H-pad*1.4,"left"); put(time,W-pad,H-pad*1.4,"right");
   } else {
-    put("● REC",pad,pad,"left","#ff5a4a"); put("SP",W-pad,pad,"right");
-    x.textBaseline="bottom"; put(kind==="video"?`${h12}:${mm}:${ss} ${ap}`:`${h12}:${mm} ${ap}`,W-pad,H-pad*1.4-fs,"right"); put(`${M} ${t.getDate()} ${t.getFullYear()}`,W-pad,H-pad*1.4,"right");
+    put(tl,pad,pad,"left","#ff5a4a"); put(tr,W-pad,pad,"right");
+    x.textBaseline="bottom"; put(time,W-pad,H-pad*1.4-(date?fs:0),"right"); put(date,W-pad,H-pad*1.4,"right");
   }
 }
 
@@ -1378,18 +1872,19 @@ function camGeom(source){
   if(pick){ W=long; H=Math.max(2,Math.round(long/pick/2)*2); }
   if(sh>sw) [W,H]=[H,W];
   const Ar=W/H; let cw=sw, ch=sh; if(sw/sh>Ar) cw=sh*Ar; else ch=sw/Ar;
-  return {sw0,sh0,sw,sh,cw,ch,W,H};
+  const z=Math.max(1,C.cropZoom||1); cw/=z; ch/=z; const sx=(sw-cw)/2*(1-(C.cropX||0)), sy=(sh-ch)/2*(1+(C.cropY||0));   /* zoom in and slide the picture inside the crop */
+  return {sw0,sh0,sw,sh,cw,ch,W,H,sx,sy};
 }
 function prepCam(source, reuse){
-  const g=camGeom(source), {sw0,sh0,sw,sh,cw,ch,W,H}=g, R=reuse||{}, T=camType();
+  const g=camGeom(source), {sw0,sh0,sw,sh,cw,ch,W,H,sx,sy}=g, R=reuse||{}, T=camType();
   const o=R.o||document.createElement("canvas"); if(o.width!==sw||o.height!==sh){ o.width=sw; o.height=sh; }
   const ox=o.getContext("2d"); ox.setTransform(1,0,0,1,0,0); ox.clearRect(0,0,sw,sh);
   ox.translate(sw/2,sh/2); ox.rotate(P.rot*Math.PI/180); if(P.flip) ox.scale(-1,1); ox.drawImage(source,-sw0/2,-sh0/2);
   const c=R.c||document.createElement("canvas"); if(c.width!==W||c.height!==H){ c.width=W; c.height=H; }
   const x=c.getContext("2d",{willReadFrequently:true}); x.imageSmoothingEnabled=true; x.imageSmoothingQuality="low";
   if(T.soft){ const t=R.t||document.createElement("canvas"); t.width=Math.max(2,Math.round(W*0.7)); t.height=Math.max(2,Math.round(H*0.7));
-    t.getContext("2d").drawImage(o,(sw-cw)/2,(sh-ch)/2,cw,ch,0,0,t.width,t.height); x.drawImage(t,0,0,W,H); R.t=t; }
-  else x.drawImage(o,(sw-cw)/2,(sh-ch)/2,cw,ch,0,0,W,H);
+    t.getContext("2d").drawImage(o,sx,sy,cw,ch,0,0,t.width,t.height); x.drawImage(t,0,0,W,H); R.t=t; }
+  else x.drawImage(o,sx,sy,cw,ch,0,0,W,H);
   if(P.bright!==0||P.contrast!==1||P.sat!==1||P.warmth!==0){
     const id=x.getImageData(0,0,W,H), d=id.data, b=P.bright*255, k=P.contrast, s=P.sat, w=P.warmth*28;
     for(let i=0;i<d.length;i+=4){ let r=d[i], gg=d[i+1], bl=d[i+2];
@@ -1424,6 +1919,9 @@ function seg7(x,str,right,bottom,h,color,glow,alignLeft){
   }
   x.restore();
 }
+/* the date and time shown by the Tape on-screen display and the Camera date stamp: the user's own choice, or the file's */
+function shownTime(which){ const v=which==="tape"?P.osdDate:C.stampDate; if(v){ const t=new Date(v).getTime(); if(isFinite(t)) return t; } return srcTime; }
+function infoDefaults(){ const T=camType(), [rw,rh]=kind==="video"?T.vres:T.res; return {S:`1/${C.flash?60:125}`, res:`${rw}×${rh}`, num:`100-${String(counterNum()).padStart(4,"0")}`}; }
 function stampText(t){
   const yy=String(t.getFullYear()).slice(2), Y=t.getFullYear(), mm=String(t.getMonth()+1).padStart(2,"0"), dd=String(t.getDate()).padStart(2,"0");
   let s = C.stampFmt==="dmy" ? `${dd} ${mm} '${yy}` : C.stampFmt==="ymd" ? `${Y}.${mm}.${dd}` : C.stampFmt==="mdy" ? `${mm}/${dd}/${Y}` : `'${yy} ${mm} ${dd}`;
@@ -1433,7 +1931,7 @@ function stampText(t){
 function battery(x,px,py,h,color){ const w=h*1.8; x.save(); x.strokeStyle=color; x.fillStyle=color; x.lineWidth=Math.max(1,h*0.12);
   x.strokeRect(px,py,w,h); x.fillRect(px+w,py+h*0.3,h*0.18,h*0.4); for(let i=0;i<3;i++) x.fillRect(px+h*0.18+i*(w-h*0.2)/3,py+h*0.18,(w-h*0.2)/3-h*0.12,h-h*0.36); x.restore(); }
 function drawCamOverlays(x,W,H,tMs,frame){
-  const t=new Date(srcTime+(kind==="video"?tMs:0)), u=Math.min(W,H), mono=`"VT323", ui-monospace, monospace`;
+  const t=new Date(shownTime("cam")+(kind==="video"?tMs:0)), u=Math.min(W,H), mono=`"VT323", ui-monospace, monospace`;
   // frames first, the date stamp sits on top
   if(C.frame==="view"){
     x.save(); x.strokeStyle="rgba(255,255,255,.9)"; x.lineWidth=Math.max(1,u*0.008); const m=u*0.06, L=u*0.09;
@@ -1454,8 +1952,11 @@ function drawCamOverlays(x,W,H,tMs,frame){
   } else if(C.frame==="info"){
     const bh=Math.round(H*0.085), fs=Math.round(bh*0.7), T=camType(); x.save(); x.fillStyle="rgba(0,0,0,.5)"; x.fillRect(0,H-bh,W,bh);
     x.fillStyle="#fff"; x.font=`${fs}px ${mono}`; x.textBaseline="middle"; x.textAlign="left";
-    const [rw,rh]=kind==="video"?T.vres:T.res; x.fillText(`F2.8  1/${C.flash?60:125}  ISO100  ${rw}×${rh}${C.flash?"  ϟ":""}`,bh*0.35,H-bh/2);
-    x.textAlign="right"; x.fillText(`100-${String(counterNum()).padStart(4,"0")}`,W-bh*0.35,H-bh/2); x.restore();
+    const D=infoDefaults(), num=String(C.infoNum==null?D.num:C.infoNum);
+    const left=[C.infoF, C.infoS==null?D.S:C.infoS, C.infoIso, C.infoRes===false?"":D.res, C.infoX, C.flash?"ϟ":""].map(v=>String(v==null?"":v).trim()).filter(Boolean).join("  ");
+    const room=W-bh*0.7-(num?bh*0.5:0), need=x.measureText(left).width+x.measureText(num).width; if(need>room) x.font=`${Math.max(6,Math.floor(fs*room/need))}px ${mono}`;   /* long text shrinks to fit */
+    x.fillText(left,bh*0.35,H-bh/2);
+    x.textAlign="right"; x.fillText(num,W-bh*0.35,H-bh/2); x.restore();
   }
   if(C.frame==="custom") drawCustomFrame(x,W,H);
   if(C.stamp!=="none"){
@@ -1483,7 +1984,90 @@ try{
   worker.onmessage=e=>{ const w=waiters.get(e.data.id); if(w){ waiters.delete(e.data.id); w.res(e.data); } };
   worker.onerror=()=>{ worker=null; for(const [id,w] of waiters){ waiters.delete(id); w.res(runOp(w.m2)); } };
 }catch(e){ worker=null; }
+/* Tape effect on the graphics chip (WebGL2, engine_gpu.js) when it gives the same picture as the worker engine AND is faster on
+   this device. Both are checked once, on the device itself. Anything else (no WebGL2, a different picture, a slower chip, an error,
+   a lost context) uses the worker engine, which is unchanged. */
+/* where render time goes (ms), for the speed read-out in Credits and for tests */
+const PROF={seek:0,prep:0,eng:0,post:0,enc:0,n:0,t0:0,fps:0,gpu:0,reset(){ this.seek=this.prep=this.eng=this.post=this.enc=this.n=this.gpu=0; this.t0=performance.now(); }};
+const GPU={pref:true,state:"untested",fast:false,used:0,cpu:0,fails:0,force:/[?&]gpu=force\b/.test(location.search),soft:/[?&]gpu=(force|soft)\b/.test(location.search),diff:null,gms:0,cms:0,taps:0,skip:"",why:"",sched:false};
+try{ if(localStorage.getItem("pretro-gpu")==="off") GPU.pref=false; }catch(e){}
+function gpuPattern(W,H){ const a=new Uint8ClampedArray(W*H*4), top=Math.round(H*0.62); for(let y=0;y<H;y++) for(let x=0;x<W;x++){ const o=(y*W+x)*4, b=(x*7/W)|0;
+    a[o]=y<top?((b&4)?235:16):(x*255/W); a[o+1]=y<top?((b&2)?235:16):(255-x*255/W); a[o+2]=y<top?((b&1)?235:16):((x*13+y*29)&255); a[o+3]=255; } return a; }
+function gpuDiff(a,b){ let sum=0; for(let i=0;i<a.length;i++) sum+=Math.abs(a[i]-b[i]); return sum/a.length; }
+function gpuSelfTest(){
+  if(GPU.state!=="untested") return; GPU.sched=true;
+  const T=self.GPUTAPE; if(!T){ GPU.state="unavailable"; GPU.why="no engine"; speedInfo(); return; }
+  try{ const St=defaults(); St.seed=7; const o={force:GPU.soft}, sum=t=>t.reduce((x,y)=>x+y,0);
+    /* 1. the same picture? a small test picture through both engines */
+    let W=96,H=64,a=gpuPattern(W,H); const g=T.apply(a,W,H,St,H/480,3,o);
+    if(!g){ GPU.state="unavailable"; GPU.why=(T.info&&T.info.why)||""; speedInfo(); return; }
+    const c=new Uint8ClampedArray(a); self.NTSC.apply(c,W,H,St,H/480,3); GPU.diff=gpuDiff(c,g);
+    if(!(GPU.diff<1.5)){ GPU.state="mismatch"; speedInfo(); return; }
+    /* 2. the same picture through the canvas-in, canvas-out route used for video frames? If not, only that shortcut is skipped */
+    try{ const ic=document.createElement("canvas"); ic.width=W; ic.height=H; ic.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(a),W,H),0,0);
+      const oc=T.apply(ic,W,H,St,H/480,3,{force:GPU.soft,canvas:true});
+      if(oc){ const rc=document.createElement("canvas"); rc.width=W; rc.height=H; const rx=rc.getContext("2d",{willReadFrequently:true}); rx.drawImage(oc,0,0); GPU.fast=gpuDiff(c,rx.getImageData(0,0,W,H).data)<1.5; }
+    }catch(e){ GPU.fast=false; }
+    /* 3. faster? a 320x240 frame on each, best of two runs (the read-back makes the graphics chip finish its work) */
+    W=320; H=240; a=gpuPattern(W,H); const time=f=>{ let best=1e9; for(let i=0;i<2;i++){ const t=performance.now(); f(); best=Math.min(best,performance.now()-t); } return best; };
+    const run=()=>{ if(!T.apply(a,W,H,St,H/480,3,o)) throw new Error("gpu run"); };
+    run(); let gms=time(run); GPU.taps=sum(T.taps);
+    if(T.precisions.length>1 && T.info.precision==="32-bit"){ /* 16-bit working precision only when clearly faster and still the same picture */
+      T.setPrecision(16); run(); const g16=time(run), s2=gpuPattern(96,64), o16=T.apply(s2,96,64,St,64/480,3,o);
+      if(o16 && g16<gms*0.8 && gpuDiff(c,o16)<1.5) gms=g16; else T.setPrecision(32); }
+    GPU.gms=gms; GPU.cms=time(()=>{ self.NTSC.apply(new Uint8ClampedArray(a),W,H,St,H/480,3); });
+    GPU.state=(GPU.force || GPU.gms<GPU.cms*0.9)?"ok":"slower";
+  }catch(e){ GPU.state="unavailable"; GPU.why=String(e&&e.message||e); }
+  speedInfo();
+}
+/* now=true: decide straight away (before a render or a live preview). Otherwise the check waits a moment so it never delays the first picture. */
+function gpuReady(now){ if(!GPU.pref || GPU.fails>2) return false;
+  if(GPU.state==="untested"){ if(now||GPU.force) gpuSelfTest(); else { if(!GPU.sched){ GPU.sched=true; setTimeout(gpuSelfTest,1500); } return false; } }
+  return GPU.state==="ok"; }
+function gpuTape(data,W,H,Px,frame,opt){
+  if(!gpuReady()) return null;
+  if(opt&&opt.canvas&&!GPU.fast) return null;
+  const sig=GPU.force?"":H+JSON.stringify(Px); if(sig && sig===GPU.skip){ GPU.cpu++; return null; }
+  const T=self.GPUTAPE, out=T.apply(data,W,H,Px,H/480,frame|0,Object.assign({force:GPU.soft},opt||{}));
+  if(out){ GPU.used++;
+    if(sig && GPU.taps){ let n=0; for(const t of T.taps) n+=t; if(GPU.gms*(n/GPU.taps)>GPU.cms*1.15) GPU.skip=sig; }  /* very long filters: the processor is quicker for these settings */
+    return out; }
+  if(T.failed){ T.failed=false; GPU.fails++; if(GPU.fails>2) speedInfo(); } GPU.cpu++; return null; }
+/* CRT TV look on the graphics chip: same idea, checked once (same picture, and faster) */
+const GCRT={state:"untested",used:0,fails:0,diff:null,gms:0,cms:0};
+function crtSelfTest(){ if(GCRT.state!=="untested") return; const T=self.GPUCRT; if(!T){ GCRT.state="unavailable"; return; }
+  try{ const K=clone(PDEF.crt), o={force:GPU.soft}, rc=document.createElement("canvas"), rx=rc.getContext("2d",{willReadFrequently:true});
+    const read=(g,W,H)=>{ rc.width=W; rc.height=H; rx.drawImage(g,0,0); return rx.getImageData(0,0,W,H).data; };
+    const mk=(W,H)=>{ const a=gpuPattern(W,H), ic=document.createElement("canvas"); ic.width=W; ic.height=H; ic.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(a),W,H),0,0); return {a,ic}; };
+    let t=mk(64,50), worst=0;
+    for(const kk of [K,Object.assign({},K,{mask:"shadow",curve:1,glow:1,vig:1,scan:1,maskAmt:1})]){
+      const g=T.apply(t.ic,64,50,kk,o); if(!g){ GCRT.state="unavailable"; return; }
+      const c=self.CRT.apply(new Uint8ClampedArray(t.a),64,50,kk); worst=Math.max(worst,gpuDiff(new Uint8ClampedArray(c.buf),read(g,128,100))); }
+    GCRT.diff=worst; if(!(worst<1.0)){ GCRT.state="mismatch"; return; }
+    t=mk(160,120); const time=f=>{ let best=1e9; for(let i=0;i<2;i++){ const s0=performance.now(); f(); best=Math.min(best,performance.now()-s0); } return best; };
+    const run=()=>{ const g=T.apply(t.ic,160,120,K,o); if(!g) throw new Error("crt run"); rx.drawImage(g,0,0,1,1,0,0,1,1); rx.getImageData(0,0,1,1); };
+    run(); GCRT.gms=time(run); GCRT.cms=time(()=>{ self.CRT.apply(new Uint8ClampedArray(t.a),160,120,K); });
+    GCRT.state=(GPU.force || GCRT.gms<GCRT.cms*0.9)?"ok":"slower";
+  }catch(e){ GCRT.state="unavailable"; } }
+function gpuCrt(canvas,K){ if(!GPU.pref || GCRT.fails>2) return null; if(GCRT.state==="untested") crtSelfTest(); if(GCRT.state!=="ok") return null;
+  const T=self.GPUCRT, g=T.apply(canvas,canvas.width,canvas.height,K,{force:GPU.soft}); if(g){ GCRT.used++; return g; }
+  if(T.failed){ T.failed=false; GCRT.fails++; } return null; }
+function speedInfo(){ const el=$("speedInfo"); if(!el) return; const T=self.GPUTAPE, ms=v=>v<10?v.toFixed(1):String(Math.round(v));
+  const chip=T&&T.info&&T.info.renderer?` (${String(T.info.renderer).replace(/^ANGLE \((.*)\)$/,"$1").slice(0,60)}, ${T.info.precision})`:"";
+  let t;
+  if(!GPU.pref) t="Tape effect: on the processor (the graphics chip is switched off).";
+  else if(GPU.fails>2) t="Tape effect: on the processor. The graphics chip kept failing, so it's off until you reload.";
+  else if(GPU.state==="untested") t="Tape effect: checking the graphics chip…";
+  else if(GPU.state==="ok") t=`Tape effect: on the graphics chip${chip}. Test frame: ${ms(GPU.gms)} ms on the graphics chip, ${ms(GPU.cms)} ms on the processor.`;
+  else if(GPU.state==="slower") t=`Tape effect: on the processor. The graphics chip${chip} was slower here: ${ms(GPU.gms)} ms a test frame against ${ms(GPU.cms)} ms.`;
+  else if(GPU.state==="mismatch") t="Tape effect: on the processor. The graphics chip gave a slightly different picture here, so it isn't used.";
+  else t="Tape effect: on the processor. This browser has no fast graphics chip support (WebGL2)."+(GPU.why?` (${GPU.why.slice(0,60)})`:"");
+  if(GCRT.state==="ok" && GPU.pref) t+=" The CRT TV look also runs on the graphics chip.";
+  if(PROF.n>1){ const n=PROF.n, f=v=>ms(Math.max(0,v)/n);
+    t+=` Last video render: ${PROF.fps.toFixed(1)} frames a second. Each frame: ${f(PROF.seek)} ms reading the video, ${f(PROF.prep)} ms preparing, ${f(PROF.eng)} ms effect, ${ms(Math.max(0,1000/Math.max(0.01,PROF.fps)-(PROF.seek+PROF.prep+PROF.eng)/n))} ms the rest.`; }
+  el.textContent=t; const cb=$("gpuOn"); if(cb) cb.checked=GPU.pref; }
 function engine(op,data,W,H,Px,frame){
+  if(op==="ntsc"){ const g=gpuTape(data,W,H,Px,frame); if(g) return Promise.resolve({buf:g.buffer,W,H}); }
   const id=++jobId, scale=H/480, copy=new Uint8ClampedArray(data), msg={op,id,buf:copy.buffer,W,H,P:Px,scale,frame:frame|0};
   if(!worker) return sleep(0).then(()=>runOp(msg));
   const keep=new Uint8ClampedArray(data);
@@ -1561,16 +2145,21 @@ async function crunch(c,q1,q2){
 async function produce(source,tMs,frame,R,render){
   let pr;
   if(!render && !prepDirty && R.pr && R.prMode===M) pr=R.pr;
-  else { await fontReady(); pr = M==="tape" ? prep(source,tMs,R) : prepCam(source,R); if(!render){ R.pr=pr; R.prMode=M; prepDirty=false; } }
-  if(render && FADE_K<1){ const d=pr.data, k=Math.max(0,FADE_K); for(let i=0;i<d.length;i+=4){ d[i]*=k; d[i+1]*=k; d[i+2]*=k; } }
+  else { await fontReady(); const tp=performance.now(); pr = M==="tape" ? prep(source,tMs,R,render && gpuReady()) : prepCam(source,R); PROF.prep+=performance.now()-tp; if(!render){ R.pr=pr; R.prMode=M; prepDirty=false; } }
+  if(render && FADE_K<1 && pr.data){ const d=pr.data, k=Math.max(0,FADE_K); for(let i=0;i<d.length;i+=4){ d[i]*=k; d[i+1]*=k; d[i+2]*=k; } }
   let canvas, rect;
   if(M==="tape"){
-    const out=await engine("ntsc",pr.data,pr.W,pr.H,R.S||clone(S),frame);
-    const fc=R.fc||(R.fc=document.createElement("canvas")); const g=framed(out.buf,pr.W,pr.H,fc); canvas=fc; rect={x:g.x,y:g.y,w:g.w,h:g.h,cx:g.cx,cy:g.cy,cw:g.cw,ch:g.ch};
+    const te=performance.now(), St=R.S||clone(S); let srcC=null;
+    if(!pr.data){ srcC=gpuTape(pr.orig,pr.W,pr.H,St,frame,{canvas:true,fade:render?FADE_K:1});   /* graphics chip, canvas in and canvas out */
+      if(!srcC){ const d=pr.data=pr.orig.getContext("2d").getImageData(0,0,pr.W,pr.H).data; if(render && FADE_K<1){ const k=Math.max(0,FADE_K); for(let i=0;i<d.length;i+=4){ d[i]*=k; d[i+1]*=k; d[i+2]*=k; } } } }
+    if(!srcC){ const out=await engine("ntsc",pr.data,pr.W,pr.H,St,frame); srcC=bufToCanvas(out.buf,pr.W,pr.H,rawCanvas); }
+    PROF.eng+=performance.now()-te;
+    const fc=R.fc||(R.fc=document.createElement("canvas")); const g=frameCanvas(srcC,fc); canvas=fc; rect={x:g.x,y:g.y,w:g.w,h:g.h,cx:g.cx,cy:g.cy,cw:g.cw,ch:g.ch};
     if(P.frameOn && !P.fSoft) drawTapeFrame(fc.getContext("2d"),g.x,g.y,g.w,g.h);
     if(P.cc.on && !P.cc.soft) drawCaptions(fc.getContext("2d"),g.x,g.y,g.w,g.h,tMs);
-    if(P.crt.on && !LIVE_LINES){ const d=fc.getContext("2d").getImageData(0,0,fc.width,fc.height).data;
-      const cr=await engine("crt",d,fc.width,fc.height,clone(P.crt),frame), cc=R.cc||(R.cc=document.createElement("canvas")); bufToCanvas(cr.buf,cr.W,cr.H,cc);
+    if(P.crt.on && !LIVE_LINES){ const cc=R.cc||(R.cc=document.createElement("canvas")), gc=gpuCrt(fc,P.crt); let cr;
+      if(gc){ cr={W:gc.width,H:gc.height}; if(cc.width!==cr.W||cc.height!==cr.H){ cc.width=cr.W; cc.height=cr.H; } cc.getContext("2d").drawImage(gc,0,0); }   /* graphics chip */
+      else { const d=fc.getContext("2d").getImageData(0,0,fc.width,fc.height).data; cr=await engine("crt",d,fc.width,fc.height,clone(P.crt),frame); bufToCanvas(cr.buf,cr.W,cr.H,cc); }
       const s=cr.W/fc.width; rect=Object.assign({},rect,{x:rect.x*s,y:rect.y*s,w:rect.w*s,h:rect.h*s}); canvas=cc;
       if(P.crt.bezel){ const bz=bezel(cc,R); canvas=bz.canvas; rect.x+=bz.pad; rect.y+=bz.pad; } }
   } else {
@@ -1683,7 +2272,7 @@ function setSaveLabel(){
   $("keepBtn").hidden = kind!=="image";
   $("svBox").hidden = kind!=="image"; placeFades(); placeActs();
   $("liveBtns").hidden = kind!=="video";
-  if(kind==="video") $("vInfo").textContent = `${Math.max(1,Math.round((V.end-V.start)*V.fps))} frames${M==="camera"?` at ${camType().vres.join("×")}`:""}. Each frame goes through the full effect, so expect roughly 2 to 5 frames a second.`;
+  if(kind==="video") $("vInfo").textContent = `${Math.max(1,Math.round((V.end-V.start)*V.fps))} frames${M==="camera"?` at ${camType().vres.join("×")}`:""}. Each frame goes through the full effect, so ${PROF.n>1?`expect about ${PROF.fps<10?PROF.fps.toFixed(1):Math.round(PROF.fps)} frames a second, going by your last render`:"rendering takes a while"}.`;
   if(kind==="audio") $("vInfo").textContent = `Sound only · ${fmtT(V.end-V.start)} selected. The Audio tab controls how it sounds.`;
 }
 function seek(v,t){ return new Promise(res=>{ let done=false; const fin=()=>{ if(done) return; done=true; v.removeEventListener("seeked",fin); res(); };
@@ -1797,6 +2386,7 @@ async function renderVideo(){
   rendering=true; cancelReq=false; $("prog").hidden=false; clearResult(); $("note").textContent="";
   $("progTxt").textContent="Getting ready…"; $("progBar").style.width="0%";
   let lock=null; try{ lock=await navigator.wakeLock?.request("screen"); }catch(e){}
+  gpuReady(true); PROF.n=0;
   const R={S:clone(S)}, firstT=V.start;
   await seek(video,firstT); let first=await produce(video,firstT*1000,0,R,true);
   const Wo=first.canvas.width+(first.canvas.width&1), Ho=first.canvas.height+(first.canvas.height&1);
@@ -1817,11 +2407,14 @@ async function renderVideo(){
       if(cancelReq||err) break;
       const t=V.start+k/fps; let res=first;
       FADE_K=Math.min(fadeGain(k/fps,total,pf.in,0),fadeGain((k+1)/fps,total,0,pf.out));
-      if(k>0 || FADE_K<1){ await seek(video,t); res=await produce(video,t*1000,k,R,true); }
+      if(k===0) PROF.reset();
+      if(k>0 || FADE_K<1){ const ts=performance.now(); await seek(video,t); const tq=performance.now(); PROF.seek+=tq-ts; res=await produce(video,t*1000,k,R,true); PROF.post+=performance.now()-tq; }
+      const tn=performance.now();
       fx2.fillStyle="#000"; fx2.fillRect(0,0,Wo,Ho); fx2.drawImage(res.canvas,0,0);
       const frame=new VideoFrame(fc,{timestamp:Math.round(k*1e6/fps),duration:Math.round(1e6/fps)});
       venc.encode(frame,{keyFrame:k%(fps*2)===0}); frame.close();
       while(venc.encodeQueueSize>3) await sleep(4);
+      PROF.enc+=performance.now()-tn; PROF.n=k+1; PROF.fps=(k+1)/((performance.now()-PROF.t0)/1000); PROF.gpu=GPU.used;
       progress(k+1,n,t0); if(k%12===0) await show(res,false);
     }
     if(err) throw err;
@@ -1850,7 +2443,7 @@ async function renderVideo(){
   }catch(e){ if(outFile){ try{ outFile.w.abort(); }catch(_){} } $("note").textContent="The video couldn't be rendered on this device. Try fewer scan lines, a shorter clip, a lower frame rate or no CRT look."; }
   endRender(lock);
 }
-function endRender(lock){ FADE_K=1; titleDone(cancelReq?"Cancelled":"Video ready"); try{ lock&&lock.release(); }catch(e){} rendering=false; $("prog").hidden=true; $("vfdState").textContent="READY";
+function endRender(lock){ FADE_K=1; speedInfo(); titleDone(cancelReq?"Cancelled":"Video ready"); try{ lock&&lock.release(); }catch(e){} rendering=false; $("prog").hidden=true; $("vfdState").textContent="READY";
   setSaveLabel(); if(kind==="video") seek(video,+$("vPos").value).then(()=>{ prepDirty=true; schedule(); }); }
 /* AAC setup bytes (AudioSpecificConfig). Safari's AudioEncoder hands back broken ones (WebKit bug 302253), which makes the
    sound track silent on iPhone, so we always write our own: AAC-LC, the real sample rate and channel count. */
@@ -2167,7 +2760,7 @@ async function processChunked(reader,t0,dur,A,CH,emit,prog){
 const STREAM_SAVE_MIN=90; // seconds
 function canStreamSave(){ try{ return typeof window.showSaveFilePicker==="function" && !window.claude && window.self===window.top; }catch(e){ return false; } }
 
-if(/[?&]test\b/.test(location.search)) window.__pr={openAudioReader,processChunked,bufReader,addToRoll,get roll(){ return roll; },get A(){ return A; },get mediaFile(){ return mediaFile; },set(k,v){ if(k==="V") Object.assign(V,v); if(k==="P") Object.assign(P,v); if(k==="A") Object.assign(A,v); }};
+if(/[?&]test\b/.test(location.search)) window.__pr={GPU,GCRT,PROF,crtSelfTest,gpuReady,gpuSelfTest,speedInfo,engine,defaults,clone,presetSettings,get PRESETS(){ return PRESETS; },get video(){ return video; },get ALLP(){ return allPresets(); },get S(){ return S; },get P(){ return P; },produce,openAudioReader,processChunked,bufReader,addToRoll,get roll(){ return roll; },get A(){ return A; },get mediaFile(){ return mediaFile; },set(k,v){ if(k==="FADE") FADE_K=v; if(k==="S") Object.assign(S,v); if(k==="V") Object.assign(V,v); if(k==="P") Object.assign(P,v); if(k==="A") Object.assign(A,v); }};
 
 /* ================= render sound only ================= */
 function applyBufFades(ab){ const fd=soundFades(); if(!(fd.in>0||fd.out>0)) return; const sr=ab.sampleRate, dur=ab.length/sr;
@@ -2633,7 +3226,7 @@ function syncFinderUi(){ $("fPhoto").setAttribute("aria-pressed",String(fMode===
   $("fShutter").classList.toggle("vid",fMode==="video"); $("fShutter").classList.toggle("recording",!!fRec); $("fShutter").setAttribute("aria-label",fMode==="photo"?"Take photo":fRec?"Stop recording":"Start recording");
   $("fFlip").disabled=!!fRec; $("fPhoto").disabled=!!fRec; $("fVideo").disabled=!!fRec; }
 async function openFinder(){
-  $("finder").hidden=false; document.body.classList.add("finder-open"); $("fMsg").textContent="Starting the camera…"; syncFinderUi();
+  $("finder").hidden=false; document.body.classList.add("finder-open"); $("fMsg").textContent="Starting the camera…"; syncFinderUi(); if(M==="tape") gpuReady(true);
   try{ await startStream(); }catch(e){ $("fMsg").textContent="The camera couldn't start. Allow camera access for this site in Settings › Safari › Camera, or use "+(M==="tape"?"Eject":"Library")+"."; return; }
   $("fMsg").textContent = M==="tape" ? "Live Tape preview (lighter than the final render)." : ""; fRun=true; finderLoop();
 }
@@ -2716,7 +3309,7 @@ async function startLive(){
   const wasMuted=video.muted; video.muted=!$("liveSound").checked; video.loop=false;
   await seek(video,Math.max(V.start,Math.min(+$("vPos").value||V.start,V.end-0.05)));
   try{ await video.play(); }catch(e){ video.muted=true; try{ await video.play(); }catch(e2){} }
-  LIVE_LINES = M==="tape" ? Math.min(P.lines,240) : 0;
+  LIVE_LINES = M==="tape" ? Math.min(P.lines,240) : 0; if(M==="tape") gpuReady(true);
   liveC.hidden=false; $("badgeR").textContent="LIVE";
   let f=0, t0=performance.now(), shown=0;
   while(liveOn && kind==="video"){
@@ -2781,6 +3374,12 @@ function placeActs(){
   }
 }
 
+/* ================= speed read-out and graphics-chip switch (in Credits) ================= */
+if($("gpuOn")){ $("gpuOn").checked=GPU.pref;
+  $("gpuOn").onchange=()=>{ GPU.pref=$("gpuOn").checked; try{ localStorage.setItem("pretro-gpu",GPU.pref?"on":"off"); }catch(e){}
+    if(GPU.pref){ GPU.fails=0; GPU.skip=""; gpuReady(true); } speedInfo(); prepDirty=true; schedule(); };
+  const cr=document.querySelector(".credits"); if(cr) cr.addEventListener("toggle",()=>{ if(cr.open){ if(GPU.pref) gpuReady(true); speedInfo(); } }); }
+
 /* ================= fades UI (moves into the video panel or the photo-video panel) ================= */
 const fmtFade=v=>v>0?v.toFixed(1)+" s":"Off";
 function syncFades(){
@@ -2814,6 +3413,7 @@ $("svRender").onclick=async()=>{
   if(rendering||kind!=="image") return;
   if(typeof VideoEncoder!=="function"||typeof Mp4Muxer==="undefined"){ $("note").textContent="Video export needs a newer browser: iOS 16.4 or later, or a recent Chrome, Edge or Safari."; return; }
   const fps=SV.fps, n=Math.max(1,Math.round(SV.len*fps));
+  if(M==="tape") gpuReady(true);
   rendering=true; svCancel=false; clearStill(); $("svProg").hidden=false; $("svBar").style.width="0%"; $("svTxt").textContent="Getting ready…";
   let lock=null; try{ lock=await navigator.wakeLock?.request("screen"); }catch(e){}
   try{
